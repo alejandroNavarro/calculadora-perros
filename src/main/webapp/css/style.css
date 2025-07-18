@@ -1,0 +1,490 @@
+/* Importar la fuente Inter de Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Estilos generales para el cuerpo de la página */
+body {
+    font-family: 'Inter', sans-serif; /* Usar Inter como fuente principal */
+    background-color: #f0f2f5; /* Fondo gris claro */
+    display: flex;
+    flex-direction: column; /* Cambiado a columna para la barra superior */
+    justify-content: flex-start; /* Alinear contenido al inicio */
+    align-items: center;
+    min-height: 100vh; /* Altura mínima del 100% del viewport */
+    margin: 0;
+    padding: 0; /* Eliminado padding general del body */
+    box-sizing: border-box;
+    color: #333; /* Color de texto base */
+}
+
+/* Estilos para la barra superior */
+.app-header {
+    background-color: #ffffff; /* Fondo blanco para la barra */
+    width: 100%;
+    padding: 8px 0 !important; /* REDUCIDO Y FORZADO */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Sombra ligeramente más suave */
+    text-align: center;
+    margin-bottom: 15px !important; /* Espacio debajo de la barra, REDUCIDO Y FORZADO */
+    border-bottom: 1px solid #e0e0e0; /* Borde inferior sutil */
+    position: sticky; /* Hace que la barra sea pegajosa */
+    top: 0; /* La pega a la parte superior del viewport */
+    z-index: 1000; /* Asegura que esté por encima de otros elementos */
+}
+
+/* Contenedor de texto dentro del encabezado */
+.app-header .text-center {
+    padding: 3px 0 !important; /* REDUCIDO Y FORZADO */
+}
+
+/* Ajustar el tamaño del icono del perro */
+.app-header .dog-icon {
+    font-size: 1.4rem !important; /* REDUCIDO Y FORZADO */
+    margin-bottom: 3px !important; /* Ajusta el margen inferior, REDUCIDO Y FORZADO */
+    color: #6c757d; /* Color del icono */
+}
+
+/* Ajustar el tamaño del título principal */
+.app-header h1 {
+    margin-bottom: 1px !important; /* Reduce el margen entre título y subtítulo, REDUCIDO Y FORZADO */
+    font-size: 1.7rem !important; /* REDUCIDO Y FORZADO */
+    color: #343a40; /* Color de texto más oscuro */
+    font-weight: 700; /* Mantener negrita */
+}
+
+/* Ajustar el tamaño y el margen del subtítulo */
+.app-header p {
+    font-size: 0.85rem !important; /* REDUCIDO Y FORZADO */
+    margin-bottom: 4px !important; /* Reduce el margen inferior del subtítulo, REDUCIDO Y FORZADO */
+    color: #6c757d; /* Color de texto más suave */
+}
+
+/* Estilos para la barra de navegación de Bootstrap */
+.navbar {
+    width: 100%; /* Asegura que la barra de navegación ocupe todo el ancho */
+    padding-left: 15px; /* Pequeño padding para los lados */
+    padding-right: 15px;
+    margin-top: 5px !important; /* Reduce el margen superior de la navbar para acercarla al texto, REDUCIDO Y FORZADO */
+    padding-top: 3px !important; /* Ajusta el padding de la navbar, REDUCIDO Y FORZADO */
+    padding-bottom: 3px !important; /* Ajusta el padding de la navbar, REDUCIDO Y FORZADO */
+}
+
+/* Contenedor principal de la aplicación (el que contiene las calculadoras) */
+.container {
+    background-color: #ffffff; /* Fondo blanco para el contenedor */
+    padding: 30px;
+    border-radius: 15px; /* Bordes más redondeados */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+    width: 100%;
+    max-width: 900px; /* Ancho máximo para el contenedor de la calculadora */
+    margin: 0 auto; /* Centrar el contenedor */
+    text-align: center;
+    margin-top: 0; /* No necesita margen superior si el header ya lo tiene */
+}
+
+/* Estilos para el contenedor del formulario de registro */
+.registration-container {
+    max-width: 500px; /* Ancho máximo para el formulario de registro */
+    padding: 30px;
+    background-color: #ffffff; /* Fondo blanco */
+    border-radius: 15px; /* Bordes redondeados */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    width: 100%;
+    margin-top: 20px; /* Espacio superior para separarlo del header */
+    margin-bottom: 20px; /* Espacio inferior */
+}
+
+/* Estilos para el contenedor de login */
+.login-container {
+    max-width: 400px;
+    margin: 100px auto; /* Centrar vertical y horizontalmente */
+    padding: 30px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Estilos específicos para el contenedor del formulario de dosis */
+.dosis-form-container {
+    max-width: 600px;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Estilos para el grupo de input de contraseña */
+.password-input-group {
+    position: relative;
+    margin-bottom: 15px; /* Ajusta el margen si es necesario */
+}
+.password-input-group input {
+    padding-right: 45px; /* Deja espacio para el botón del ojo */
+}
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 1.4em; /* Increased font size for better visibility */
+    padding: 0;
+    line-height: 1;
+    z-index: 2; /* Ensure it's above the input field */
+}
+.password-toggle:hover {
+    color: #333;
+}
+
+
+/* Títulos principales (dentro de las calculadoras, registro y login) */
+h1 { /* General h1, but app-header h1 overrides some */
+    color: #333;
+    margin-bottom: 25px;
+    font-weight: 700; /* Negrita */
+}
+.calculator-section h2, .registration-container h2, .login-container h2 { /* Specific h2 for sections, registration, and login */
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-align: center;
+}
+/* Nuevo: Estilo específico para los h2 de la calculadora de comida */
+.container h1 { /* Para el h1 dentro de calculadoraComida.jsp */
+    color: #5cb85c; /* Verde para el título principal de la calculadora */
+    margin-bottom: 25px;
+}
+.results-section h2 { /* Para el h2 de resultados de la calculadora */
+    color: #5cb85c;
+    margin-top: 0;
+}
+
+
+/* Estilos para las secciones de la calculadora */
+.calculator-section {
+    background-color: #f9f9f9; /* Fondo ligeramente gris para cada sección */
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 20px; /* Espacio entre secciones */
+    border: 1px solid #e0e0e0; /* Borde suave */
+}
+
+
+/* Estilos para etiquetas de formulario */
+label, .form-label { /* Combined for consistency */
+    display: block;
+    margin-bottom: 8px;
+    color: #444;
+    font-weight: 500; /* Mediano */
+    text-align: left;
+}
+
+/* Estilos para campos de entrada de texto, número y select */
+input[type="number"],
+input[type="text"],
+select,
+.form-control, /* Bootstrap classes */
+.form-select { /* Bootstrap classes */
+    width: calc(100% - 20px); /* Ancho completo menos padding */
+    padding: 12px 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px; /* Bordes redondeados */
+    box-sizing: border-box; /* Incluir padding y borde en el ancho */
+    font-size: 1rem;
+    color: #333;
+}
+/* Ajuste específico para input de radio */
+input[type="radio"] {
+    margin-right: 5px;
+    width: auto; /* Para que no ocupe todo el ancho */
+    vertical-align: middle; /* Alineación vertical */
+    margin-bottom: 0; /* Elimina margen inferior extra */
+}
+
+/* Ajuste para checkbox - MODIFICADO PARA VISIBILIDAD */
+input[type="checkbox"] {
+    margin-right: 8px; /* Aumenta el espacio entre el checkbox y el texto */
+    width: 18px; /* Define un tamaño explícito para el checkbox */
+    height: 18px; /* Define un tamaño explícito para el checkbox */
+    vertical-align: middle;
+    margin-bottom: 0;
+    appearance: auto; /* Restaura la apariencia predeterminada del navegador si se ha sobrescrito */
+    -webkit-appearance: auto; /* Para compatibilidad con Webkit */
+    box-sizing: border-box; /* Asegura que padding y borde se incluyan en el width/height */
+}
+
+
+/* Estilos para radio buttons */
+.radio-group {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en líneas nuevas */
+    justify-content: flex-start; /* Alinea a la izquierda */
+    gap: 15px; /* Espacio entre los grupos de radio */
+    margin-bottom: 15px; /* Espacio debajo del grupo */
+    padding-left: 5px; /* Pequeño padding para alinear con labels */
+}
+
+.form-check-inline {
+    display: flex; /* Para alinear el radio y el label */
+    align-items: center;
+    margin-right: 0; /* Eliminar margen derecho por defecto */
+}
+
+.form-check-inline label {
+    margin-bottom: 0; /* Eliminar margen inferior duplicado */
+    font-weight: normal; /* No negrita para los labels de radio */
+}
+
+
+/* Estilos para botones */
+button, .btn-primary { /* Combined for consistency and ensured blue color */
+    background-color: #007bff; /* Azul brillante */
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px; /* Bordes redondeados */
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600; /* Semi-negrita */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Transiciones suaves */
+    margin-top: 10px;
+    width: 100%; /* Asegurar que el botón ocupe todo el ancho */
+    border-color: #007bff; /* Ensure border color matches background */
+}
+
+button:hover, .btn-primary:hover {
+    background-color: #0056b3; /* Azul más oscuro al pasar el ratón */
+    transform: translateY(-2px); /* Pequeño levantamiento */
+    border-color: #0056b3;
+}
+
+button:active, .btn-primary:active {
+    transform: translateY(0); /* Vuelve a su posición al hacer clic */
+}
+
+/* Nuevo: Estilos para el botón de calcular ración (verde) */
+.btn-success {
+    background-color: #5cb85c;
+    border-color: #5cb85c;
+    color: white;
+}
+.btn-success:hover {
+    background-color: #4cae4c;
+    border-color: #4cae4c;
+}
+
+
+/* Estilos para los resultados */
+.result, .result-section { /* Combined for consistency */
+    margin-top: 25px;
+    padding: 20px;
+    background-color: #e9f7ef; /* Fondo verde claro para resultados */
+    border: 1px solid #d4edda; /* Borde verde */
+    border-radius: 10px;
+    color: #155724; /* Texto verde oscuro */
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-align: left;
+}
+
+.result p, .result-section p {
+    margin: 5px 0;
+}
+.results-section { /* Estilo específico para la sección de resultados de la calculadora */
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #e6ffe6; /* Fondo verde claro para resultados */
+    border-radius: 8px;
+    border: 1px solid #a8e8a8;
+}
+.results-section ul {
+    list-style: disc; /* Vuelve a los puntos de lista */
+    padding-left: 25px; /* Indentación para las listas */
+}
+.results-section li {
+    margin-bottom: 8px;
+}
+
+
+/* Estilos específicos para el panel */
+.panel-container {
+    max-width: 800px;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.welcome-message {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+.logout-link {
+    margin-top: 30px;
+}
+.mascotas-table {
+    margin-top: 30px;
+    text-align: left; /* Alinea el texto de la tabla a la izquierda */
+}
+.mascotas-table th, .mascotas-table td {
+    vertical-align: middle; /* Centra verticalmente el contenido de las celdas */
+}
+
+/* NUEVOS ESTILOS PARA LAS TARJETAS DE MASCOTA EN EL PANEL */
+.mascota-card {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    transition: transform 0.2s ease-in-out;
+    border: none; /* Eliminar el borde predeterminado de Bootstrap */
+}
+.mascota-card:hover {
+    transform: translateY(-5px);
+}
+.mascota-card .card-title {
+    color: #333;
+    font-weight: 600;
+}
+.mascota-card .card-text {
+    color: #666;
+    font-size: 0.95em;
+}
+.no-mascotas-message {
+    text-align: center;
+    padding: 50px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-top: 30px;
+}
+
+/* Estilos para los mensajes de alerta (Bootstrap) */
+.message {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+.message.success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+.message.danger {
+    background-color: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+}
+
+/* Botón de volver atrás (para calculadoraComida.jsp) */
+.back-button {
+    margin-top: 20px;
+    display: inline-block;
+    background-color: #6c757d; /* Gris */
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+.back-button:hover {
+    background-color: #5a6268;
+}
+
+/* Ocultar/Mostrar campos específicos (para calculadoraComida.jsp) */
+#numCachorrosGroup {
+    display: none; /* Ocultar por defecto, JavaScript lo mostrará */
+    margin-top: 10px;
+}
+#tieneEnfermedadGroup {
+    margin-top: 10px;
+    text-align: left; /* Alinea el checkbox y su label a la izquierda */
+}
+#tieneEnfermedadGroup label {
+    display: inline-flex; /* Para alinear checkbox y texto */
+    align-items: center;
+    font-weight: normal; /* No negrita */
+}
+#tieneEnfermedadGroup small {
+    display: block; /* Para que la pequeña descripción vaya en una nueva línea */
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 5px;
+}
+
+
+/* Estilos responsivos para pantallas pequeñas */
+@media (max-width: 768px) {
+    .container, .registration-container, .login-container, .panel-container { /* Apply responsive styles to all main containers */
+        padding: 15px; /* Reducido un poco más el padding en móviles */
+    }
+
+    /* Ajustes para el encabezado en móviles */
+    .app-header h1 {
+        font-size: 1.4rem !important; /* Título más pequeño en móviles */
+    }
+    .app-header p {
+        font-size: 0.75rem !important; /* Subtítulo más pequeño en móviles */
+    }
+    .app-header .dog-icon {
+        font-size: 1.1rem !important; /* Icono más pequeño en móviles */
+    }
+
+    .calculator-section {
+        padding: 15px;
+    }
+
+    /* Ajustes para que los inputs y selects se vean bien en móvil */
+    input[type="number"],
+    input[type="text"],
+    select,
+    .form-control,
+    .form-select {
+        width: 100%; /* Asegurar que ocupen todo el ancho disponible */
+        padding: 8px; /* Reducir padding de inputs */
+        font-size: 0.95rem; /* Fuente ligeramente más pequeña */
+    }
+
+    button, .btn-primary, .btn-success {
+        padding: 10px 15px; /* Reducir padding de botones */
+        font-size: 1rem; /* Fuente más pequeña */
+    }
+
+    .radio-group {
+        flex-direction: column; /* Apilar radio buttons en pantallas pequeñas */
+        align-items: flex-start; /* Alinear a la izquierda */
+        gap: 8px; /* Menos espacio */
+    }
+    .form-check-inline {
+        margin-bottom: 5px; /* Espacio entre radios apilados */
+    }
+
+    .welcome-message {
+        font-size: 1.3rem; /* Más pequeño en móviles */
+    }
+    .panel-container .d-grid { /* Ajustar los botones del panel */
+        grid-template-columns: 1fr; /* Una columna */
+        gap: 10px;
+    }
+    .panel-container .btn-lg {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+
+    .mascotas-table {
+        font-size: 0.9em; /* Fuente más pequeña para la tabla */
+    }
+    .mascotas-table th, .mascotas-table td {
+        padding: 8px; /* Menos padding en celdas */
+    }
+}

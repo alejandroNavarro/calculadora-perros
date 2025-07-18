@@ -1,0 +1,16 @@
+com\calculadoraperros\web\servlet\LoginServlet.class
+com\calculadoraperros\web\dao\MascotaDAO.class
+com\calculadoraperros\web\servlet\CalculadoraComidaServlet.class
+com\calculadoraperros\web\util\CalculadoraNutricional.class
+com\calculadoraperros\web\servlet\MascotaServlet.class
+com\calculadoraperros\web\servlet\RegistroServlet.class
+com\calculadoraperros\web\servlet\UsuarioServlet.class
+com\calculadoraperros\web\util\ConexionDB.class
+com\calculadoraperros\web\modelo\Usuario.class
+com\calculadoraperros\web\modelo\Dosis.class
+com\calculadoraperros\web\modelo\Mascota.class
+com\calculadoraperros\web\servlet\CalculadoraServlet.class
+com\calculadoraperros\web\servlet\LogoutServlet.class
+com\calculadoraperros\web\dao\UsuarioDAO.class
+com\calculadoraperros\web\servlet\DosisServlet.class
+com\calculadoraperros\web\dao\DosisDAO.class
