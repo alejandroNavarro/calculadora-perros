@@ -4,107 +4,83 @@
 /* Estilos generales para el cuerpo de la página */
 body {
     font-family: 'Inter', sans-serif; /* Usar Inter como fuente principal */
-    background-color: #f0f2f5; /* Fondo gris claro */
+    /* Fondo con degradado y patrón de huellas de perro */
+    background: linear-gradient(to bottom right, #e0f2f7, #c1e4f0); /* Degradado suave de azul claro a cian claro */
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MCA1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyBmaWxsPSIjY2NlYWVlIiBmaWxsLW9wYWNpdHk9IjAuMiI+CiAgICA8cGF0aCBkPSJNIDI1IDAgQyAxMi43IDAgMy43IDkuMiAzLjc1IDIxLjUgQyAzLjc1IDI2LjIgNS42NSAzMC40IDguNiAzMy42IEMgMTEuNSAzNi44IDE1LjEgMzkuMiAxOS4xIDQwLjggQyAyMy4xIDQyLjQgMjYuOSA0My42IDMwLjcgNDMuNiBDIDQzLjcgNDMuNiA1My43IDM0LjQgNTMuNzUgMjIuMiBDIDUzLjc1IDE3LjUgNTEuODYgMTMuMyA0OC45MSAxMC4xIEMgNDUuOTcgNi45IDQyLjM3IDQuNSAzOS4zNyAzLjIgQyAzNi4zNyAxLjYgMzIuNTcgMC40IDI4Ljc1IDAuNCBDIDI4Ljc1IDAuNCAyNSAwIDI1IDAgWiIgLz4KICA8Y2lyY2xlIGN4PSIyMi41IiBjeT0iMTMuNSIgcj0iMiIvPgogIDxjaXJjbGUgY3g9IjMyLjUiIGN5PSIxMy41IiByPSIyIi8+CiAgPGNpcmNsaWUgY3g9IjI3LjUiIGN5PSIyNC41IiByPSI1Ii8+CiAgPGNpcmNsZSBjeD0iMTcuNSIgY3k9IjI5LjUiIHI9IjIiLz4KICA8Y2lyY2xlIGN4PSIzNy41IiBjeT0iMjkuNSIgcj0iMiIvPgogIDwvZ24+CiAgPGcgZmlsbD0iI2NjZWVlZSIgZmlsbC1vcGFjaXR5PSIwLjEiPgogICAgPHBhdGggZD0iTSAyNSAwIEMgMTIuNyAwIDMuNyA5LjIgMy43NSAyMS41IEMgMy43NSAyNi4yIDUuNjUgMzAuNCA4LjYgMzMuNiBDIDExLjUgMzYuOCAxNS4xIDM5LjIgMTkuMSAzNy44IEMgMjMuMSAzOS40IDI2LjkgNDAuNiAzMC43IDQwLjYgQyAzNy43IDQwLjYgNDcuNyAzMS40IDQ3Ljc1IDE5LjIgQyA0Ny43NSAxNC41IDQ1Ljg2IDEwLjMgNDIuOTEgNy4xIEMgMzkuOTcgMy45IDM2LjM3IDEuNSAzMy4zNyAuMiBDIDMwLjM3IC0xLjQgMjYuNTcgLTIuNiAyMi43NSAtMi42IEMgMjIuNzUgLTIuNiAyNSAwIDI1IDAgWiIgLz4KICA8Y2lyY2xlIGN4PSIyMi41IiBjeT0iMTMuNSIgcj0iMiIvPgogIDxjaXJjbGUgY3g9IjMyLjUiIGN5PSIxMy41IiByPSIyIi8+CiAgPGNpcmNsZSBjeD0iMjcuNSIgY3k9IjI0LjUiIHI9IjUiLz4KICA8Y2lyY2xlIGN4PSIxNy41IiBjeT0iMjkuNSIgcj0iMiIvPgogIDxjaXJjbGUgY3g9IjM3LjUiIGN5PSIyOS41IiByPSIyIi8+CiAgPC9nPgogIDwvc3ZnPg=="); /* Patrón de huellas de perro más grande y sutil */
+    background-size: 100px 100px, cover; /* Tamaño del patrón y del degradado */
+    background-attachment: fixed; /* Hace que el fondo se quede fijo al hacer scroll */
+
     display: flex;
-    flex-direction: column; /* Cambiado a columna para la barra superior */
-    justify-content: flex-start; /* Alinear contenido al inicio */
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: center;
-    min-height: 100vh; /* Altura mínima del 100% del viewport */
+    min-height: 100vh;
     margin: 0;
-    padding: 0; /* Eliminado padding general del body */
+    padding: 0;
     box-sizing: border-box;
-    color: #333; /* Color de texto base */
+    color: #333;
 }
 
 /* Estilos para la barra superior */
 .app-header {
-    background-color: #ffffff; /* Fondo blanco para la barra */
+    background-color: #ffffff;
     width: 100%;
-    padding: 8px 0 !important; /* REDUCIDO Y FORZADO */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Sombra ligeramente más suave */
+    padding: 8px 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     text-align: center;
-    margin-bottom: 15px !important; /* Espacio debajo de la barra, REDUCIDO Y FORZADO */
-    border-bottom: 1px solid #e0e0e0; /* Borde inferior sutil */
-    position: sticky; /* Hace que la barra sea pegajosa */
-    top: 0; /* La pega a la parte superior del viewport */
-    z-index: 1000; /* Asegura que esté por encima de otros elementos */
+    margin-bottom: 15px !important;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-/* Contenedor de texto dentro del encabezado */
 .app-header .text-center {
-    padding: 3px 0 !important; /* REDUCIDO Y FORZADO */
+    padding: 3px 0 !important;
 }
 
-/* Ajustar el tamaño del icono del perro */
 .app-header .dog-icon {
-    font-size: 1.4rem !important; /* REDUCIDO Y FORZADO */
-    margin-bottom: 3px !important; /* Ajusta el margen inferior, REDUCIDO Y FORZADO */
-    color: #6c757d; /* Color del icono */
+    font-size: 1.4rem !important;
+    margin-bottom: 3px !important;
+    color: #6c757d;
 }
 
-/* Ajustar el tamaño del título principal */
 .app-header h1 {
-    margin-bottom: 1px !important; /* Reduce el margen entre título y subtítulo, REDUCIDO Y FORZADO */
-    font-size: 1.7rem !important; /* REDUCIDO Y FORZADO */
-    color: #343a40; /* Color de texto más oscuro */
-    font-weight: 700; /* Mantener negrita */
+    margin-bottom: 1px !important;
+    font-size: 1.7rem !important;
+    color: #343a40;
+    font-weight: 700;
 }
 
-/* Ajustar el tamaño y el margen del subtítulo */
 .app-header p {
-    font-size: 0.85rem !important; /* REDUCIDO Y FORZADO */
-    margin-bottom: 4px !important; /* Reduce el margen inferior del subtítulo, REDUCIDO Y FORZADO */
-    color: #6c757d; /* Color de texto más suave */
+    font-size: 0.85rem !important;
+    margin-bottom: 4px !important;
+    color: #6c757d;
 }
 
-/* Estilos para la barra de navegación de Bootstrap */
 .navbar {
-    width: 100%; /* Asegura que la barra de navegación ocupe todo el ancho */
-    padding-left: 15px; /* Pequeño padding para los lados */
+    width: 100%;
+    padding-left: 15px;
     padding-right: 15px;
-    margin-top: 5px !important; /* Reduce el margen superior de la navbar para acercarla al texto, REDUCIDO Y FORZADO */
-    padding-top: 3px !important; /* Ajusta el padding de la navbar, REDUCIDO Y FORZADO */
-    padding-bottom: 3px !important; /* Ajusta el padding de la navbar, REDUCIDO Y FORZADO */
+    margin-top: 5px !important;
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
 }
 
-/* Contenedor principal de la aplicación (el que contiene las calculadoras) */
 .container {
-    background-color: #ffffff; /* Fondo blanco para el contenedor */
+    background-color: #ffffff;
     padding: 30px;
-    border-radius: 15px; /* Bordes más redondeados */
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 900px; /* Ancho máximo para el contenedor de la calculadora */
-    margin: 0 auto; /* Centrar el contenedor */
+    max-width: 900px;
+    margin: 0 auto;
     text-align: center;
-    margin-top: 0; /* No necesita margen superior si el header ya lo tiene */
+    margin-top: 0;
 }
 
-/* Estilos para el contenedor del formulario de registro */
 .registration-container {
-    max-width: 500px; /* Ancho máximo para el formulario de registro */
-    padding: 30px;
-    background-color: #ffffff; /* Fondo blanco */
-    border-radius: 15px; /* Bordes redondeados */
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    width: 100%;
-    margin-top: 20px; /* Espacio superior para separarlo del header */
-    margin-bottom: 20px; /* Espacio inferior */
-}
-
-/* Estilos para el contenedor de login */
-.login-container {
-    max-width: 400px;
-    margin: 100px auto; /* Centrar vertical y horizontalmente */
-    padding: 30px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-/* Estilos específicos para el contenedor del formulario de dosis */
-.dosis-form-container {
-    max-width: 600px;
+    max-width: 500px;
     padding: 30px;
     background-color: #ffffff;
     border-radius: 15px;
@@ -114,30 +90,172 @@ body {
     margin-bottom: 20px;
 }
 
-/* Estilos para el grupo de input de contraseña */
+/* Nuevo contenedor para centrar el login verticalmente (AJUSTADO) */
+.login-wrapper {
+    display: flex;
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Centrar verticalmente */
+    min-height: calc(100vh - 80px); /* Ajustado para dejar espacio al header y footer si existen */
+    padding: 20px; /* Añadido padding general para evitar que se pegue a los bordes en móviles */
+    box-sizing: border-box; /* Incluir padding en el cálculo del ancho/alto */
+    width: 100%; /* Asegurarse de que ocupe todo el ancho disponible */
+}
+
+/* Estilos para la tarjeta del formulario de login (NUEVO DISEÑO) */
+.login-container {
+    background-color: #ffffff; /* Fondo blanco para la tarjeta */
+    padding: 3rem; /* Espaciado interno generoso para un look más "premium" */
+    border-radius: 1.5rem; /* Esquinas muy redondeadas */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); /* Sombra más profunda y suave */
+    width: 100%;
+    max-width: 480px; /* Ancho máximo ligeramente mayor para un diseño más espacioso */
+    text-align: center;
+    margin: 0;
+    transition: all 0.4s ease-in-out; /* Transición más suave */
+    border: 1px solid rgba(220, 220, 220, 0.5); /* Borde sutil para un efecto más suave */
+}
+
+/* Estilos para el título del formulario de login (NUEVO DISEÑO) */
+.login-container h2 {
+    color: #34495e; /* Un gris azulado oscuro para el título */
+    margin-bottom: 2.5rem; /* Más espacio debajo del título */
+    font-weight: 700;
+    font-size: 2.5rem; /* Título más grande y llamativo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem; /* Espacio entre icono y texto */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Sombra de texto sutil */
+}
+
+/* Estilos para el icono dentro del título de login (NUEVO DISEÑO) */
+.login-container h2 .fas {
+    color: #6a82fb; /* Un azul vibrante, más suave que el morado anterior */
+    font-size: 2.8rem; /* Icono más grande */
+    transform: translateY(-3px); /* Ajuste vertical */
+}
+
+/* Estilos para los campos de entrada de login (NUEVO DISEÑO) */
+.login-container input[type="email"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 1.1rem 1.5rem; /* Relleno aún más generoso */
+    margin-bottom: 1.5rem; /* Más espacio inferior */
+    border: 1px solid #dcdcdc; /* Borde más suave por defecto */
+    border-radius: 0.8rem; /* Esquinas redondeadas */
+    font-size: 1.1rem; /* Fuente ligeramente más grande */
+    color: #444;
+    background-color: #f8f8f8; /* Fondo ligeramente gris para los inputs */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.login-container input[type="email"]:focus,
+.login-container input[type="password"]:focus {
+    border-color: #6a82fb; /* Borde azul vibrante al enfocar */
+    box-shadow: 0 0 0 5px rgba(106, 130, 251, 0.25); /* Sombra de enfoque más prominente */
+    background-color: #ffffff; /* Fondo blanco al enfocar */
+    outline: none;
+}
+
+/* Estilos para el botón de enviar de login (NUEVO DISEÑO) */
+.login-container button[type="submit"] {
+    width: 100%;
+    padding: 1.2rem; /* Relleno generoso */
+    background: linear-gradient(to right, #6a82fb, #89a3f7); /* Degradado suave para el botón */
+    color: white;
+    border-radius: 0.8rem; /* Esquinas redondeadas */
+    font-weight: 600;
+    font-size: 1.25rem; /* Botón más grande */
+    letter-spacing: 0.8px; /* Espaciado entre letras */
+    transition: background 0.3s ease-in-out, transform 0.15s ease-in-out, box-shadow 0.25s ease-in-out;
+    cursor: pointer;
+    border: none;
+    margin-top: 1.5rem; /* Margen superior */
+    box-shadow: 0 8px 15px rgba(106, 130, 251, 0.2); /* Sombra por defecto */
+}
+
+.login-container button[type="submit"]:hover {
+    background: linear-gradient(to right, #5a70e0, #7890e6); /* Degradado más oscuro al pasar el ratón */
+    transform: translateY(-3px); /* Levantamiento más pronunciado */
+    box-shadow: 0 12px 20px rgba(106, 130, 251, 0.35); /* Sombra más grande al pasar el ratón */
+}
+
+.login-container button[type="submit"]:active {
+    transform: translateY(0); /* Vuelve a su posición al hacer clic */
+    box-shadow: 0 4px 8px rgba(106, 130, 251, 0.2); /* Sombra más sutil al hacer clic */
+}
+
+/* Estilos para el enlace de registro en login (NUEVO DISEÑO) */
+.login-container p {
+    margin-top: 2rem; /* Más espacio superior */
+    color: #7f8c8d; /* Gris más suave */
+    font-size: 1rem; /* Tamaño de fuente estándar */
+}
+
+.login-container p a {
+    color: #6a82fb; /* Color azul vibrante para el enlace */
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.login-container p a:hover {
+    color: #5a70e0; /* Azul más oscuro al pasar el ratón */
+    text-decoration: underline;
+}
+
+/* Estilos para mensajes de alerta (AJUSTADOS) */
+.alert {
+    padding: 1rem 1.5rem; /* Relleno aumentado */
+    margin-bottom: 1.5rem; /* Espacio inferior aumentado */
+    border: 1px solid transparent;
+    border-radius: 0.8rem; /* Bordes más redondeados */
+    text-align: left;
+    font-size: 0.95rem;
+}
+.alert-danger {
+    color: #a94442; /* Rojo oscuro */
+    background-color: #f8d7da; /* Fondo rojo claro */
+    border-color: #f5c6cb; /* Borde rojo */
+}
+.alert-success { /* Asegurarse de que el estilo de éxito también sea visualmente atractivo */
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+
+/* Estilos para el grupo de input de contraseña (AJUSTADO) */
 .password-input-group {
     position: relative;
-    margin-bottom: 15px; /* Ajusta el margen si es necesario */
+    margin-bottom: 1.5rem; /* Consistente con otros inputs */
 }
 .password-input-group input {
-    padding-right: 45px; /* Deja espacio para el botón del ojo */
+    padding-right: 55px; /* Más espacio para el botón del ojo */
 }
 .password-toggle {
     position: absolute;
-    right: 10px;
+    right: 15px; /* Posicionado a la derecha */
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
-    color: #6c757d;
-    font-size: 1.4em; /* Increased font size for better visibility */
+    color: #95a5a6; /* Gris más suave para el icono */
+    font-size: 1.5em; /* Icono ligeramente más grande */
     padding: 0;
     line-height: 1;
-    z-index: 2; /* Ensure it's above the input field */
+    z-index: 2;
+    outline: none;
+    transition: color 0.2s ease;
 }
 .password-toggle:hover {
-    color: #333;
+    color: #34495e; /* Color más oscuro al pasar el ratón */
+}
+.password-toggle:focus {
+    outline: none;
 }
 
 
@@ -147,7 +265,7 @@ h1 { /* General h1, but app-header h1 overrides some */
     margin-bottom: 25px;
     font-weight: 700; /* Negrita */
 }
-.calculator-section h2, .registration-container h2, .login-container h2 { /* Specific h2 for sections, registration, and login */
+.calculator-section h2, .registration-container h2 { /* Specific h2 for sections, registration, and login. Removed .login-container h2 here */
     color: #333;
     margin-top: 0;
     margin-bottom: 20px;
@@ -340,26 +458,48 @@ button:active, .btn-primary:active {
     vertical-align: middle; /* Centra verticalmente el contenido de las celdas */
 }
 
-/* NUEVOS ESTILOS PARA LAS TARJETAS DE MASCOTA EN EL PANEL */
-.mascota-card {
+/* Estilos específicos para la tarjeta de mascota en el panel (movidos de panel.jsp) */
+.mascota-card-panel {
     background-color: #ffffff;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     margin-bottom: 20px;
     transition: transform 0.2s ease-in-out;
-    border: none; /* Eliminar el borde predeterminado de Bootstrap */
+    border: none;
+    text-align: center; /* Centrar contenido dentro de la tarjeta */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Alinear elementos al centro horizontalmente */
+    padding: 20px;
 }
-.mascota-card:hover {
+.mascota-card-panel:hover {
     transform: translateY(-5px);
 }
-.mascota-card .card-title {
+.mascota-card-panel .mascota-img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%; /* Circular */
+    border: 3px solid #007bff; /* Borde azul */
+    margin-bottom: 15px;
+}
+.mascota-card-panel .card-title {
     color: #333;
     font-weight: 600;
+    font-size: 1.5rem;
+    margin-bottom: 5px;
 }
-.mascota-card .card-text {
+.mascota-card-panel .card-text-info {
     color: #666;
-    font-size: 0.95em;
+    font-size: 1rem;
+    margin-bottom: 5px;
 }
+.mascota-card-panel .btn-edit-mascota {
+    margin-top: 15px;
+    width: 80%; /* Ancho del botón dentro de la tarjeta */
+}
+
+/* Estilos para el mensaje de "no mascotas" */
 .no-mascotas-message {
     text-align: center;
     padding: 50px;
@@ -425,19 +565,27 @@ button:active, .btn-primary:active {
 
 /* Estilos responsivos para pantallas pequeñas */
 @media (max-width: 768px) {
-    .container, .registration-container, .login-container, .panel-container { /* Apply responsive styles to all main containers */
-        padding: 15px; /* Reducido un poco más el padding en móviles */
+    /* Ajustes para el login-wrapper en móviles */
+    .login-wrapper {
+        min-height: auto;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        display: block;
+    }
+
+    .container, .registration-container, .login-container, .panel-container {
+        padding: 15px;
     }
 
     /* Ajustes para el encabezado en móviles */
     .app-header h1 {
-        font-size: 1.4rem !important; /* Título más pequeño en móviles */
+        font-size: 1.4rem !important;
     }
     .app-header p {
-        font-size: 0.75rem !important; /* Subtítulo más pequeño en móviles */
+        font-size: 0.75rem !important;
     }
     .app-header .dog-icon {
-        font-size: 1.1rem !important; /* Icono más pequeño en móviles */
+        font-size: 1.1rem !important;
     }
 
     .calculator-section {
@@ -450,30 +598,30 @@ button:active, .btn-primary:active {
     select,
     .form-control,
     .form-select {
-        width: 100%; /* Asegurar que ocupen todo el ancho disponible */
-        padding: 8px; /* Reducir padding de inputs */
-        font-size: 0.95rem; /* Fuente ligeramente más pequeña */
+        width: 100%;
+        padding: 8px;
+        font-size: 0.95rem;
     }
 
     button, .btn-primary, .btn-success {
-        padding: 10px 15px; /* Reducir padding de botones */
-        font-size: 1rem; /* Fuente más pequeña */
+        padding: 10px 15px;
+        font-size: 1rem;
     }
 
     .radio-group {
-        flex-direction: column; /* Apilar radio buttons en pantallas pequeñas */
-        align-items: flex-start; /* Alinear a la izquierda */
-        gap: 8px; /* Menos espacio */
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
     .form-check-inline {
-        margin-bottom: 5px; /* Espacio entre radios apilados */
+        margin-bottom: 5px;
     }
 
     .welcome-message {
-        font-size: 1.3rem; /* Más pequeño en móviles */
+        font-size: 1.3rem;
     }
-    .panel-container .d-grid { /* Ajustar los botones del panel */
-        grid-template-columns: 1fr; /* Una columna */
+    .panel-container .d-grid {
+        grid-template-columns: 1fr;
         gap: 10px;
     }
     .panel-container .btn-lg {
@@ -482,9 +630,9 @@ button:active, .btn-primary:active {
     }
 
     .mascotas-table {
-        font-size: 0.9em; /* Fuente más pequeña para la tabla */
+        font-size: 0.9em;
     }
     .mascotas-table th, .mascotas-table td {
-        padding: 8px; /* Menos padding en celdas */
+        padding: 8px;
     }
 }

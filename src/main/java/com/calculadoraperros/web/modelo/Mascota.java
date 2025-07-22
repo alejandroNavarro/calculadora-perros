@@ -1,6 +1,6 @@
 package com.calculadoraperros.web.modelo;
 
-import java.util.Date; // Usar java.util.Date para la fecha de nacimiento
+import java.util.Date;
 import java.sql.Timestamp;
 
 /**
@@ -11,23 +11,22 @@ public class Mascota {
     private int idMascota;
     private int idUsuario;
     private String nombre;
-    private String sexo; // Nuevo campo: Sexo
-    private Date fechaNacimiento; // Cambiado a java.util.Date
+    private String sexo;
+    private Date fechaNacimiento;
     private String raza;
     private double pesoKg;
     private boolean esterilizado;
     private Timestamp fechaRegistro;
-    private String tipo; // "Perro", "Gato"
-    private String nivelActividad; // "Bajo", "Normal", "Activo", "Muy Activo"
-    // Valores de condicionSalud: "Saludable", "Obesidad", "Bajo Peso", "Cachorro", "Gestacion Temprana",
-    // "Gestacion Tardia", "Lactancia Inicial", "Lactancia Pico", "Lactancia Tardia", "Senior", "Enfermedad"
+    private String tipo;
+    private String nivelActividad;
     private String condicionSalud;
+    private String imagen; // Campo para almacenar el nombre del archivo de la imagen
 
     // Constructor por defecto
     public Mascota() {
     }
 
-    // Constructor completo (sin idMascota y fechaRegistro, ya que se generan automáticamente)
+    // Constructor completo (sin idMascota y fechaRegistro)
     public Mascota(int idUsuario, String nombre, String sexo, Date fechaNacimiento, String raza, double pesoKg, boolean esterilizado, String tipo, String nivelActividad, String condicionSalud) {
         this.idUsuario = idUsuario;
         this.nombre = nombre;
@@ -39,6 +38,21 @@ public class Mascota {
         this.tipo = tipo;
         this.nivelActividad = nivelActividad;
         this.condicionSalud = condicionSalud;
+    }
+
+    // Constructor completo con campo imagen
+    public Mascota(int idUsuario, String nombre, String sexo, Date fechaNacimiento, String raza, double pesoKg, boolean esterilizado, String tipo, String nivelActividad, String condicionSalud, String imagen) {
+        this.idUsuario = idUsuario;
+        this.nombre = nombre;
+        this.sexo = sexo;
+        this.fechaNacimiento = fechaNacimiento;
+        this.raza = raza;
+        this.pesoKg = pesoKg;
+        this.esterilizado = esterilizado;
+        this.tipo = tipo;
+        this.nivelActividad = nivelActividad;
+        this.condicionSalud = condicionSalud;
+        this.imagen = imagen;
     }
 
     // --- Getters y Setters ---
@@ -139,6 +153,14 @@ public class Mascota {
         this.condicionSalud = condicionSalud;
     }
 
+    public String getImagen() {
+        return imagen;
+    }
+
+    public void setImagen(String imagen) { // Renombrado de 'foto' a 'imagen' para consistencia
+        this.imagen = imagen;
+    }
+
     @Override
     public String toString() {
         return "Mascota{" +
@@ -154,6 +176,7 @@ public class Mascota {
                 ", tipo='" + tipo + '\'' +
                 ", nivelActividad='" + nivelActividad + '\'' +
                 ", condicionSalud='" + condicionSalud + '\'' +
+                ", imagen='" + imagen + '\'' + // Actualizado para reflejar 'imagen'
                 '}';
     }
 }

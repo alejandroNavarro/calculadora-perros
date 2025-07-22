@@ -22,8 +22,8 @@ public class MascotaDAO {
     private static final String COL_ID_MASCOTA = "id_mascota";
     private static final String COL_ID_USUARIO = "id_usuario";
     private static final String COL_NOMBRE = "nombre";
-    private static final String COL_SEXO = "sexo"; // Nuevo campo
-    private static final String COL_FECHA_NACIMIENTO = "fecha_nacimiento"; // Nuevo campo
+    private static final String COL_SEXO = "sexo";
+    private static final String COL_FECHA_NACIMIENTO = "fecha_nacimiento";
     private static final String COL_RAZA = "raza";
     private static final String COL_PESO_KG = "peso_kg";
     private static final String COL_ESTERILIZADO = "esterilizado";
@@ -31,14 +31,17 @@ public class MascotaDAO {
     private static final String COL_TIPO = "tipo";
     private static final String COL_NIVEL_ACTIVIDAD = "nivel_actividad";
     private static final String COL_CONDICION_SALUD = "condicion_salud";
-
+    private static final String IMAGEN = "imagen"; // Campo de imagen
 
     // Consultas SQL
-    private static final String INSERT_MASCOTA_SQL = "INSERT INTO " + TABLA_MASCOTAS + " (" + COL_ID_USUARIO + ", " + COL_NOMBRE + ", " + COL_SEXO + ", " + COL_FECHA_NACIMIENTO + ", " + COL_RAZA + ", " + COL_PESO_KG + ", " + COL_ESTERILIZADO + ", " + COL_TIPO + ", " + COL_NIVEL_ACTIVIDAD + ", " + COL_CONDICION_SALUD + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private static final String SELECT_MASCOTA_BY_ID = "SELECT " + COL_ID_MASCOTA + ", " + COL_ID_USUARIO + ", " + COL_NOMBRE + ", " + COL_SEXO + ", " + COL_FECHA_NACIMIENTO + ", " + COL_RAZA + ", " + COL_PESO_KG + ", " + COL_ESTERILIZADO + ", " + COL_FECHA_REGISTRO + ", " + COL_TIPO + ", " + COL_NIVEL_ACTIVIDAD + ", " + COL_CONDICION_SALUD + " FROM " + TABLA_MASCOTAS + " WHERE " + COL_ID_MASCOTA + " = ?";
-    private static final String SELECT_ALL_MASCOTAS_BY_USER_ID = "SELECT " + COL_ID_MASCOTA + ", " + COL_ID_USUARIO + ", " + COL_NOMBRE + ", " + COL_SEXO + ", " + COL_FECHA_NACIMIENTO + ", " + COL_RAZA + ", " + COL_PESO_KG + ", " + COL_ESTERILIZADO + ", " + COL_FECHA_REGISTRO + ", " + COL_TIPO + ", " + COL_NIVEL_ACTIVIDAD + ", " + COL_CONDICION_SALUD + " FROM " + TABLA_MASCOTAS + " WHERE " + COL_ID_USUARIO + " = ?";
+    private static final String INSERT_MASCOTA_SQL = "INSERT INTO " + TABLA_MASCOTAS + " (" + COL_ID_USUARIO + ", " + COL_NOMBRE + ", " + COL_SEXO + ", " + COL_FECHA_NACIMIENTO + ", " + COL_RAZA + ", " + COL_PESO_KG + ", " + COL_ESTERILIZADO + ", " + COL_TIPO + ", " + COL_NIVEL_ACTIVIDAD + ", " + COL_CONDICION_SALUD + ", " + IMAGEN + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String SELECT_MASCOTA_BY_ID = "SELECT " + COL_ID_MASCOTA + ", " + COL_ID_USUARIO + ", " + COL_NOMBRE + ", " + COL_SEXO + ", " + COL_FECHA_NACIMIENTO + ", " + COL_RAZA + ", " + COL_PESO_KG + ", " + COL_ESTERILIZADO + ", " + COL_FECHA_REGISTRO + ", " + COL_TIPO + ", " + COL_NIVEL_ACTIVIDAD + ", " + COL_CONDICION_SALUD + ", " + IMAGEN + " FROM " + TABLA_MASCOTAS + " WHERE " + COL_ID_MASCOTA + " = ?";
+    private static final String SELECT_ALL_MASCOTAS_BY_USER_ID = "SELECT " + COL_ID_MASCOTA + ", " + COL_ID_USUARIO + ", " + COL_NOMBRE + ", " + COL_SEXO + ", " + COL_FECHA_NACIMIENTO + ", " + COL_RAZA + ", " + COL_PESO_KG + ", " + COL_ESTERILIZADO + ", " + COL_FECHA_REGISTRO + ", " + COL_TIPO + ", " + COL_NIVEL_ACTIVIDAD + ", " + COL_CONDICION_SALUD + ", " + IMAGEN + " FROM " + TABLA_MASCOTAS + " WHERE " + COL_ID_USUARIO + " = ?";
     private static final String DELETE_MASCOTA_SQL = "DELETE FROM " + TABLA_MASCOTAS + " WHERE " + COL_ID_MASCOTA + " = ?";
-    private static final String UPDATE_MASCOTA_SQL = "UPDATE " + TABLA_MASCOTAS + " SET " + COL_NOMBRE + " = ?, " + COL_SEXO + " = ?, " + COL_FECHA_NACIMIENTO + " = ?, " + COL_RAZA + " = ?, " + COL_PESO_KG + " = ?, " + COL_ESTERILIZADO + " = ?, " + COL_TIPO + " = ?, " + COL_NIVEL_ACTIVIDAD + " = ?, " + COL_CONDICION_SALUD + " = ? WHERE " + COL_ID_MASCOTA + " = ?";
+    // La consulta UPDATE_MASCOTA_SQL es:
+    // UPDATE mascotas SET nombre = ?, sexo = ?, fecha_nacimiento = ?, raza = ?, peso_kg = ?, esterilizado = ?, tipo = ?, nivel_actividad = ?, condicion_salud = ?, imagen = ? WHERE id_mascota = ?
+    // Esto significa que los parámetros 1-9 son los campos de SET, el 10 es IMAGEN, y el 11 es ID_MASCOTA
+    private static final String UPDATE_MASCOTA_SQL = "UPDATE " + TABLA_MASCOTAS + " SET " + COL_NOMBRE + " = ?, " + COL_SEXO + " = ?, " + COL_FECHA_NACIMIENTO + " = ?, " + COL_RAZA + " = ?, " + COL_PESO_KG + " = ?, " + COL_ESTERILIZADO + " = ?, " + COL_TIPO + " = ?, " + COL_NIVEL_ACTIVIDAD + " = ?, " + COL_CONDICION_SALUD + " = ?, " + IMAGEN + " = ? WHERE " + COL_ID_MASCOTA + " = ?";
 
 
     /**
@@ -62,7 +65,8 @@ public class MascotaDAO {
             preparedStatement.setBoolean(7, mascota.isEsterilizado());
             preparedStatement.setString(8, mascota.getTipo());
             preparedStatement.setString(9, mascota.getNivelActividad());
-            preparedStatement.setString(10, mascota.getCondicionSalud());
+            preparedStatement.setString(10, mascota.getCondicionSalud()); // Este es el 10º parámetro
+            preparedStatement.setString(11, mascota.getImagen());       // Este es el 11º parámetro (IMAGEN)
 
             rowInserted = preparedStatement.executeUpdate() > 0;
 
@@ -115,6 +119,7 @@ public class MascotaDAO {
                     mascota.setTipo(rs.getString(COL_TIPO));
                     mascota.setNivelActividad(rs.getString(COL_NIVEL_ACTIVIDAD));
                     mascota.setCondicionSalud(rs.getString(COL_CONDICION_SALUD));
+                    mascota.setImagen(rs.getString(IMAGEN)); // CORRECCIÓN: Asignar a setImagen()
                 }
             }
         } catch (SQLException e) {
@@ -159,6 +164,7 @@ public class MascotaDAO {
                     mascota.setTipo(rs.getString(COL_TIPO));
                     mascota.setNivelActividad(rs.getString(COL_NIVEL_ACTIVIDAD));
                     mascota.setCondicionSalud(rs.getString(COL_CONDICION_SALUD));
+                    mascota.setImagen(rs.getString(IMAGEN)); // CORRECCIÓN: Asignar a setImagen()
                     mascotas.add(mascota);
                 }
             }
@@ -210,7 +216,9 @@ public class MascotaDAO {
             preparedStatement.setString(7, mascota.getTipo());
             preparedStatement.setString(8, mascota.getNivelActividad());
             preparedStatement.setString(9, mascota.getCondicionSalud());
-            preparedStatement.setInt(10, mascota.getIdMascota());
+            preparedStatement.setString(10, mascota.getImagen()); // CORRECCIÓN: IMAGEN es el 10º parámetro
+            preparedStatement.setInt(11, mascota.getIdMascota()); // CORRECCIÓN: ID_MASCOTA es el 11º parámetro (WHERE clause)
+
             rowUpdated = preparedStatement.executeUpdate() > 0;
         } catch (SQLException e) {
             printSQLException(e); // Log del error

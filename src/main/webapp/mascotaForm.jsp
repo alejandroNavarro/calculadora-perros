@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* Estilos específicos para el contenedor del formulario de mascota */
-        .mascota-form-container { /* Renombrado para consistencia */
+        .mascota-form-container {
             max-width: 600px;
             padding: 30px;
             background-color: #ffffff;
@@ -23,6 +23,30 @@
             width: 100%;
             margin-top: 20px;
             margin-bottom: 20px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .form-check-inline {
+            display: flex;
+            align-items: center;
+        }
+        .form-check-input {
+            margin-right: 5px;
+        }
+        .image-preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .image-preview {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            padding: 5px;
         }
     </style>
 </head>
@@ -75,32 +99,42 @@
             Mascota mascotaParaEditar = (Mascota) request.getAttribute("mascota");
             boolean isEditing = (mascotaParaEditar != null);
             String formTitle = isEditing ? "🐾 Editar Mascota" : "🐾 Registrar Nueva Mascota";
-            String actionValue = isEditing ? "actualizar" : "agregar"; // Cambiado de "registrar" a "agregar"
+            String actionValue = isEditing ? "actualizar" : "agregar";
             String submitButtonText = isEditing ? "Actualizar Mascota" : "Registrar Mascota";
 
             // Verificar si el usuario ha iniciado sesión
             Usuario usuarioActual = (Usuario) session.getAttribute("usuario");
             if (usuarioActual == null) {
-                response.sendRedirect(request.getContextPath() + "/login.jsp"); // Usar contextPath
+                response.sendRedirect(request.getContextPath() + "/login.jsp");
                 return;
             }
         %>
         <h2 class="text-center mb-4"><%= formTitle %></h2>
 
         <%-- Mensaje de error o éxito (si existe) --%>
-        <% String message = (String) request.getAttribute("message");
-           String messageType = (String) request.getAttribute("messageType");
+        <% String message = (String) session.getAttribute("message");
+           String messageType = (String) session.getAttribute("messageType");
            if (message != null && !message.isEmpty()) { %>
             <div class="alert alert-<%= messageType %> alert-dismissible fade show" role="alert">
                 <%= message %>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        <% } %>
+        <%
+            // Limpiar el mensaje de la sesión después de mostrarlo
+            session.removeAttribute("message");
+            session.removeAttribute("messageType");
+           }
+        %>
 
-        <form action="<%= request.getContextPath() %>/MascotaServlet" method="post">
+        <%-- IMPORTANTE: Añadir enctype="multipart/form-data" para la subida de archivos --%>
+        <form action="<%= request.getContextPath() %>/MascotaServlet" method="post" enctype="multipart/form-data">
             <input type="hidden" name="action" value="<%= actionValue %>">
             <% if (isEditing) { %>
                 <input type="hidden" name="idMascota" value="<%= mascotaParaEditar.getIdMascota() %>">
+                <%-- Si estamos editando, también necesitamos enviar la URL de la imagen actual
+                     para que el Servlet sepa si debe mantenerla o borrarla/reemplazarla.
+                     Esto es un campo oculto que el Servlet puede usar. --%>
+                <input type="hidden" name="currentImage" value="<%= mascotaParaEditar.getImagen() != null ? mascotaParaEditar.getImagen() : "" %>">
             <% } %>
 
             <div class="mb-3">
@@ -124,13 +158,13 @@
 
             <div class="mb-3">
                 <label for="fechaNacimientoMascota" class="form-label">Fecha de Nacimiento</label>
-                <% 
+                <%
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                     String fechaNacimientoDefault = "";
                     if (isEditing && mascotaParaEditar.getFechaNacimiento() != null) {
                         fechaNacimientoDefault = sdf.format(mascotaParaEditar.getFechaNacimiento());
                     } else {
-                        fechaNacimientoDefault = sdf.format(new Date()); // Fecha actual por defecto para nuevas mascotas
+                        fechaNacimientoDefault = sdf.format(new Date()); 
                     }
                 %>
                 <input type="date" class="form-control" id="fechaNacimientoMascota" name="fechaNacimiento" value="<%= fechaNacimientoDefault %>" required>
@@ -158,7 +192,6 @@
                 </div>
             </div>
 
-            <%-- --- NUEVOS CAMPOS DE SELECCIÓN --- --%>
             <div class="mb-3">
                 <label for="tipoMascota" class="form-label">Tipo de Mascota</label>
                 <select class="form-select" id="tipoMascota" name="tipo" required>
@@ -198,7 +231,23 @@
                     <option value="Enfermedad" <%= isEditing && "Enfermedad".equalsIgnoreCase(mascotaParaEditar.getCondicionSalud()) ? "selected" : "" %>>Enfermedad (Requiere consulta veterinaria)</option>
                 </select>
             </div>
-            <%-- --- FIN NUEVOS CAMPOS DE SELECCIÓN --- --%>
+
+            <!-- CAMPO PARA SUBIR IMAGEN -->
+            <div class="mb-3">
+                <label for="imagenMascota" class="form-label">Subir Imagen de la Mascota</label>
+                <input type="file" class="form-control" id="imagenMascota" name="imagenFile" accept="image/*">
+                <%-- Previsualización de la imagen actual si estamos editando --%>
+                <% if (isEditing && mascotaParaEditar.getImagen() != null && !mascotaParaEditar.getImagen().isEmpty()) { %>
+                    <div class="image-preview-container mt-2">
+                        <p>Imagen actual:</p>
+                        <img id="currentImagePreview" src="<%= request.getContextPath() %>/uploads/<%= mascotaParaEditar.getImagen() %>" alt="Imagen actual de la mascota" class="image-preview">
+                    </div>
+                <% } %>
+                <div class="image-preview-container mt-2" id="newImagePreviewContainer" style="display: none;">
+                    <p>Nueva imagen seleccionada:</p>
+                    <img id="newImagePreview" src="#" alt="Vista previa de la nueva imagen" class="image-preview">
+                </div>
+            </div>
 
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary btn-lg"><%= submitButtonText %></button>
@@ -215,11 +264,41 @@
             if (!fechaInput.value) { 
                 var today = new Date();
                 var dd = String(today.getDate()).padStart(2, '0');
-                var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+                var mm = String(today.getMonth() + 1).padStart(2, '0');
                 var yyyy = today.getFullYear();
                 var formattedDate = yyyy + '-' + mm + '-' + dd;
                 fechaInput.value = formattedDate;
             }
+
+            // Script para previsualizar la imagen seleccionada
+            const imagenMascotaInput = document.getElementById('imagenMascota');
+            const newImagePreview = document.getElementById('newImagePreview');
+            const newImagePreviewContainer = document.getElementById('newImagePreviewContainer');
+
+            imagenMascotaInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        newImagePreview.src = e.target.result;
+                        newImagePreviewContainer.style.display = 'block';
+                        // Ocultar la vista previa de la imagen actual si se selecciona una nueva
+                        const currentImagePreviewContainer = document.getElementById('currentImagePreview');
+                        if (currentImagePreviewContainer) {
+                            currentImagePreviewContainer.style.display = 'none';
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    newImagePreview.src = "#";
+                    newImagePreviewContainer.style.display = 'none';
+                    // Mostrar la vista previa de la imagen actual si se deselecciona una nueva
+                    const currentImagePreviewContainer = document.getElementById('currentImagePreview');
+                    if (currentImagePreviewContainer) {
+                        currentImagePreviewContainer.style.display = 'block';
+                    }
+                }
+            });
         };
     </script>
 </body>
