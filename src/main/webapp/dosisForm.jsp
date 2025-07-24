@@ -98,7 +98,7 @@
 
         <% if (mascota != null) { %>
             <p>Aquí puedes registrar o calcular la dosis para **<%= mascota.getNombre() %>** (ID: <%= mascota.getIdMascota() %>).</p>
-            <p>Peso actual: <%= String.format("%.1f", mascota.getPesoKg()).replace(",", ".") %> kg</p>
+            <p>Peso actual: <%= String.format("%.1f", mascota.getPeso()).replace(",", ".") %> kg</p>
         <% } else { %>
             <p>No se pudo cargar la información de la mascota.</p>
         <% } %>

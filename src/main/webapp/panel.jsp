@@ -2,214 +2,215 @@
 <%@ page import="com.calculadoraperros.web.modelo.Usuario" %>
 <%@ page import="com.calculadoraperros.web.modelo.Mascota" %>
 <%@ page import="java.util.List" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.time.LocalDate" %>
-<%@ page import="java.time.Period" %>
-<%@ page import="java.time.ZoneId" %>
+<%@ page import="java.util.Calendar" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Usuario - Calculadora Perros</title>
-    <!-- Incluir Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Incluir Font Awesome para iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Enlace a tu archivo CSS externo (style.css) -->
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css">
-    <style>
-        /* Estilos adicionales para las imágenes de las mascotas */
-        .mascota-img {
-            width: 120px; /* Tamaño fijo para las miniaturas */
-            height: 120px;
-            object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
-            border-radius: 50%; /* Para hacerla circular */
-            border: 3px solid #6366f1; /* Borde con color de acento */
-            margin-bottom: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .mascota-card-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            border-radius: 10px;
-            background-color: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .card-text-info {
-            font-size: 0.95rem;
-            color: #555;
-            margin-bottom: 5px;
-        }
-        .btn-edit-mascota {
-            margin-top: 15px;
-            background-color: #6366f1;
-            border-color: #6366f1;
-        }
-        .btn-edit-mascota:hover {
-            background-color: #4f46e5;
-            border-color: #4f46e5;
-        }
-        .no-mascotas-message {
-            text-align: center;
-            padding: 40px;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            margin-top: 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-    </style>
 </head>
 <body>
-    <header class="app-header">
-        <div class="text-center">
-            <span class="dog-icon">🐾</span>
-            <h1>Calculadora de Perros</h1>
-            <p>Herramientas útiles para el cuidado de tu mascota.</p>
-        </div>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light mt-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="<%= request.getContextPath() %>/index.jsp">Calculadoras</a>
-                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <%
-                            Usuario usuarioActualNav = (Usuario) session.getAttribute("usuario");
-                            if (usuarioActualNav != null) {
-                        %>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="<%= request.getContextPath() %>/MascotaServlet">Panel de <%= usuarioActualNav.getNombre() %></a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="<%= request.getContextPath() %>/LogoutServlet">Cerrar Sesión</a>
-                                </li>
-                        <%
-                            } else {
-                        %>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="<%= request.getContextPath() %>/login.jsp">Iniciar Sesión</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="<%= request.getContextPath() %>/registro.jsp">Registrarse</a>
-                                </li>
-                        <%
-                            }
-                        %>
-                    </ul>
-                </div>
+    <%!
+    // Función auxiliar para calcular la edad a partir de la fecha de nacimiento
+    public int calculateAge(java.util.Date birthDate) {
+        if (birthDate == null) {
+            return 0; // Retorna 0 si la fecha de nacimiento es nula
+        }
+        Calendar dob = Calendar.getInstance();
+        dob.setTime(birthDate);
+        Calendar today = Calendar.getInstance();
+        int age = today.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
+        if (today.get(Calendar.DAY_OF_YEAR) < dob.get(Calendar.DAY_OF_YEAR)) {
+            age--;
+        }
+        return age;
+    }
+    %>
+
+    <%
+        Usuario usuarioActual = (Usuario) session.getAttribute("usuario");
+        if (usuarioActual == null) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        List<Mascota> mascotas = (List<Mascota>) request.getAttribute("listaMascotas");
+        if (mascotas == null) {
+            mascotas = new java.util.ArrayList<>();
+        }
+
+        System.out.println("DEBUG en panel.jsp: Tamaño de la lista de mascotas: " + mascotas.size());
+
+        // Mensaje de éxito o error (si existe)
+        String message = (String) session.getAttribute("message");
+        String messageType = (String) session.getAttribute("messageType");
+        if (message != null && !message.isEmpty()) { %>
+            <div class="alert alert-<%= messageType %> alert-dismissible fade show" role="alert">
+                <%= message %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        </nav>
-    </header>
-
-    <main class="container mt-5 panel-container">
         <%
-            Usuario usuarioActual = (Usuario) session.getAttribute("usuario");
-            if (usuarioActual == null) {
-                response.sendRedirect(request.getContextPath() + "/login.jsp");
-                return;
-            }
+            session.removeAttribute("message");
+            session.removeAttribute("messageType");
+        }
+    %>
 
-            List<Mascota> mascotas = (List<Mascota>) request.getAttribute("listaMascotas");
-            
-            if (mascotas == null) {
-                mascotas = new ArrayList<>();
-            }
+    <div class="top-bar"> <%-- Barra superior con botón de toggle --%>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <span class="top-bar-title">Panel de Usuario</span>
+        <div class="top-bar-user-info">
+            <span>Hola, <%= usuarioActual.getNombre() %></span>
+            <a href="<%= request.getContextPath() %>/LogoutServlet" class="btn btn-sm btn-outline-secondary ms-2">Salir</a>
+        </div>
+    </div>
 
-            %>
+    <aside class="sidebar" id="sidebar"> <%-- Sidebar lateral, oculto por defecto --%>
+        <div class="sidebar-header">
+            <h3>Menú</h3>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="<%= request.getContextPath() %>/MascotaServlet"><i class="fas fa-home"></i> Mis Mascotas</a></li>
+            <li><a href="<%= request.getContextPath() %>/MascotaServlet?action=mostrarFormulario"><i class="fas fa-plus-circle"></i> Añadir Mascota</a></li>
+            <li><a href="<%= request.getContextPath() %>/CalculadoraComidaServlet"><i class="fas fa-calculator"></i> Calculadora de Comida</a></li>
+            <li><a href="<%= request.getContextPath() %>/LogoutServlet"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+        </ul>
+    </aside>
 
-        <h2 class="text-center mb-4">Panel de Mascotas de <%= usuarioActual.getNombre() %></h2>
+    <div class="backdrop" id="sidebarBackdrop"></div> <%-- Telón de fondo para el sidebar --%>
 
-        <div class="text-center mb-4">
+    <main class="main-content panel-container"> <%-- Contenido principal, siempre centrado --%>
+        <div class="welcome-card">
+            <span class="dog-illustration">🐶</span>
+            ¡Bienvenida, <%= usuarioActual.getNombre() %>!
+        </div>
+
+        <h2 class="text-center mb-4">Mis Mascotas</h2>
+
+        <%-- Botones para móvil (ocultos en escritorio) --%>
+        <div class="d-grid gap-3 mb-4 d-md-none">
             <a href="<%= request.getContextPath() %>/MascotaServlet?action=mostrarFormulario" class="btn btn-primary btn-lg">
-                <i class="fas fa-plus-circle"></i> Añadir Nueva Mascota
+                <i class="fas fa-plus-circle me-2"></i> Añadir Nueva Mascota
+            </a>
+            <a href="<%= request.getContextPath() %>/CalculadoraComidaServlet" class="btn btn-info btn-lg">
+                <i class="fas fa-calculator me-2"></i> Ir a Calculadora de Comida
+            </a>
+            <a href="<%= request.getContextPath() %>/LogoutServlet" class="btn btn-secondary btn-lg">
+                <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
             </a>
         </div>
 
-        <div class="row">
-            <%
-                if (!mascotas.isEmpty()) { 
-                    for (Mascota mascota : mascotas) {
-                        String edadDisplay = "N/A";
-                        if (mascota.getFechaNacimiento() != null) {
-                            LocalDate fechaNacimientoLocal = mascota.getFechaNacimiento().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                            LocalDate fechaActual = LocalDate.now();
-                            Period periodo = Period.between(fechaNacimientoLocal, fechaActual);
-                            int anos = periodo.getYears();
-                            int meses = periodo.getMonths();
-                            edadDisplay = anos + " año" + (anos == 1 ? "" : "s");
-                            if (meses > 0) {
-                                if (!edadDisplay.isEmpty() && anos > 0) edadDisplay += ", ";
-                                edadDisplay += meses + " mes" + (meses == 1 ? "" : "es");
-                            }
-                            if (anos == 0 && meses == 0) {
-                                edadDisplay = periodo.getDays() + " día" + (periodo.getDays() == 1 ? "" : "s");
-                            }
-                        }
-            %>
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="mascota-card-panel h-100">
-                                <%
-                                    // Determinar la URL de la imagen. Si hay una imagen, usarla; si no, usar el placeholder.
-                                    String imageUrl = "";
-                                    if (mascota.getImagen() != null && !mascota.getImagen().isEmpty()) {
-                                        imageUrl = request.getContextPath() + "/uploads/" + mascota.getImagen();
-                                    } else {
-                                        // Placeholder si no hay imagen
-                                        String placeholderText = mascota.getNombre().substring(0, Math.min(mascota.getNombre().length(), 5)).toUpperCase();
-                                        imageUrl = "https://placehold.co/120x120/ADD8E6/000000?text=" + placeholderText;
-                                    }
-                                %>
-                                <img src="<%= imageUrl %>" 
-                                     alt="Foto de <%= mascota.getNombre() %>" 
-                                     class="mascota-img">
-                                
-                                <h5 class="card-title"><%= mascota.getNombre() %></h5>
-                                <p class="card-text-info">Edad: <%= edadDisplay %></p>
-                                <p class="card-text-info">Raza: <%= mascota.getRaza() %></p>
-                                
-                                <a href="<%= request.getContextPath() %>/MascotaServlet?action=editar&idMascota=<%= mascota.getIdMascota() %>" class="btn btn-primary btn-sm btn-edit-mascota">
-                                    <i class="fas fa-edit me-2"></i> Editar Mascota
-                                </a>
-                                <!-- Botón de eliminar con confirmación (opcional, pero buena práctica) -->
-                                <form action="<%= request.getContextPath() %>/MascotaServlet" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar a <%= mascota.getNombre() %>?');" class="mt-2">
-                                    <input type="hidden" name="action" value="eliminar">
-                                    <input type="hidden" name="idMascota" value="<%= mascota.getIdMascota() %>">
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash-alt me-2"></i> Eliminar Mascota
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-            <%
-                    }
-                } else {
-            %>
-                    <div class="col-12">
-                        <div class="no-mascotas-message">
-                            <p class="lead">Aún no tienes mascotas registradas. ¡Añade una para empezar a gestionar sus necesidades!</p>
-                            <a href="<%= request.getContextPath() %>/MascotaServlet?action=mostrarFormulario" class="btn btn-info btn-lg mt-3">
-                                <i class="fas fa-plus-circle"></i> Registrar Primera Mascota
+        <% if (mascotas.isEmpty()) { %>
+            <div class="no-mascotas-message">
+                <p>Aún no tienes mascotas registradas. ¡Añade la primera!</p>
+                <a href="<%= request.getContextPath() %>/MascotaServlet?action=mostrarFormulario" class="btn btn-primary mt-3">
+                    <i class="fas fa-plus-circle me-2"></i> Añadir Mascota
+                </a>
+            </div>
+        <% } else { %>
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                <% for (Mascota mascota : mascotas) { %>
+                    <div class="mascota-card-panel">
+                        <img src="<%= mascota.getImagen() != null && !mascota.getImagen().isEmpty() ? request.getContextPath() + "/uploads/" + mascota.getImagen() : "https://placehold.co/120x120/FFC107/333?text=Sin+Imagen" %>"
+                             class="mascota-img" alt="Imagen de <%= mascota.getNombre() %>"
+                             onerror="this.onerror=null;this.src='https://placehold.co/120x120/FFC107/333?text=Sin+Imagen';">
+                        <h5 class="card-title"><%= mascota.getNombre() %></h5>
+                        <p class="card-text-info">Raza: <%= mascota.getRaza() %></p>
+                        <p class="card-text-info">Edad: <%= calculateAge(mascota.getFechaNacimiento()) %> años</p>
+                        <p class="card-text-info">Peso: <%= String.format(java.util.Locale.US, "%.1f", mascota.getPeso()) %> kg</p>
+                        <div class="d-flex flex-column w-100 mt-auto">
+                            <a href="<%= request.getContextPath() %>/CalculadoraComidaServlet?idMascota=<%= mascota.getIdMascota() %>" class="btn btn-info mb-2">
+                                <i class="fas fa-calculator me-2"></i> Calcular Comida
                             </a>
+                            <a href="<%= request.getContextPath() %>/MascotaServlet?action=editar&idMascota=<%= mascota.getIdMascota() %>" class="btn btn-edit-mascota mb-2">
+                                <i class="fas fa-edit me-2"></i> Editar
+                            </a>
+                            <%-- Botón de eliminar que abre el modal de confirmación --%>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
+                                    data-mascota-id="<%= mascota.getIdMascota() %>" data-mascota-nombre="<%= mascota.getNombre() %>">
+                                <i class="fas fa-trash-alt me-2"></i> Eliminar
+                            </button>
                         </div>
                     </div>
-            <%
-                }
-            %>
-        </div>
+                <% } %>
+            </div>
+        <% } %>
     </main>
 
-    <!-- Script de Bootstrap, se mantiene aquí -->
+    <!-- Modal de Confirmación de Eliminación -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que quieres eliminar a <strong id="mascotaNombreEliminar"></strong>? Esta acción no se puede deshacer.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <%-- Formulario oculto para enviar la petición POST de eliminación --%>
+                    <form id="deleteMascotaForm" action="<%= request.getContextPath() %>/MascotaServlet" method="post" style="display:inline;">
+                        <input type="hidden" name="action" value="eliminar">
+                        <input type="hidden" name="idMascota" id="deleteMascotaId">
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+            const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+
+            // Función para alternar la visibilidad del sidebar
+            function toggleSidebar() {
+                sidebar.classList.toggle('active');
+                sidebarBackdrop.classList.toggle('active');
+                // Bloquear scroll del body cuando el sidebar está activo
+                document.body.classList.toggle('no-scroll', sidebar.classList.contains('active'));
+            }
+
+            // Event listener para el botón de toggle
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+
+            // Event listener para cerrar el sidebar al hacer clic en el telón de fondo
+            if (sidebarBackdrop) {
+                sidebarBackdrop.addEventListener('click', toggleSidebar);
+            }
+
+            // Lógica para el modal de confirmación de eliminación
+            if (confirmDeleteModal) {
+                confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
+                    // Botón que disparó el modal
+                    const button = event.relatedTarget;
+                    // Extraer información de los atributos data-*
+                    const mascotaId = button.getAttribute('data-mascota-id');
+                    const mascotaNombre = button.getAttribute('data-mascota-nombre');
+
+                    // Actualizar el contenido del modal
+                    const modalBodyMascotaNombre = confirmDeleteModal.querySelector('#mascotaNombreEliminar');
+                    const deleteMascotaIdInput = confirmDeleteModal.querySelector('#deleteMascotaId');
+
+                    modalBodyMascotaNombre.textContent = mascotaNombre;
+                    deleteMascotaIdInput.value = mascotaId; // Establecer el ID en el input oculto del formulario
+                });
+            }
+        });
+    </script>
 </body>
 </html>

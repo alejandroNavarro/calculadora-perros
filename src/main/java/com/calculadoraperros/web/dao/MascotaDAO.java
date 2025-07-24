@@ -1,268 +1,260 @@
 package com.calculadoraperros.web.dao;
 
 import com.calculadoraperros.web.modelo.Mascota;
-import com.calculadoraperros.web.util.ConexionDB;
+import com.calculadoraperros.web.util.ConexionDB; // Asume que tienes esta clase para la conexión
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Date; // Importar java.sql.Date para mapear con Date de Java.util
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date; // Para java.util.Date
 
-/**
- * Clase DAO (Data Access Object) para la entidad Mascota.
- * Proporciona métodos para interactuar con la tabla 'mascotas' en la base de datos.
- */
 public class MascotaDAO {
 
-    // Nombres de las tablas y columnas
-    private static final String TABLA_MASCOTAS = "mascotas";
-    private static final String COL_ID_MASCOTA = "id_mascota";
-    private static final String COL_ID_USUARIO = "id_usuario";
-    private static final String COL_NOMBRE = "nombre";
-    private static final String COL_SEXO = "sexo";
-    private static final String COL_FECHA_NACIMIENTO = "fecha_nacimiento";
-    private static final String COL_RAZA = "raza";
-    private static final String COL_PESO_KG = "peso_kg";
-    private static final String COL_ESTERILIZADO = "esterilizado";
-    private static final String COL_FECHA_REGISTRO = "fecha_registro";
-    private static final String COL_TIPO = "tipo";
-    private static final String COL_NIVEL_ACTIVIDAD = "nivel_actividad";
-    private static final String COL_CONDICION_SALUD = "condicion_salud";
-    private static final String IMAGEN = "imagen"; // Campo de imagen
-
-    // Consultas SQL
-    private static final String INSERT_MASCOTA_SQL = "INSERT INTO " + TABLA_MASCOTAS + " (" + COL_ID_USUARIO + ", " + COL_NOMBRE + ", " + COL_SEXO + ", " + COL_FECHA_NACIMIENTO + ", " + COL_RAZA + ", " + COL_PESO_KG + ", " + COL_ESTERILIZADO + ", " + COL_TIPO + ", " + COL_NIVEL_ACTIVIDAD + ", " + COL_CONDICION_SALUD + ", " + IMAGEN + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private static final String SELECT_MASCOTA_BY_ID = "SELECT " + COL_ID_MASCOTA + ", " + COL_ID_USUARIO + ", " + COL_NOMBRE + ", " + COL_SEXO + ", " + COL_FECHA_NACIMIENTO + ", " + COL_RAZA + ", " + COL_PESO_KG + ", " + COL_ESTERILIZADO + ", " + COL_FECHA_REGISTRO + ", " + COL_TIPO + ", " + COL_NIVEL_ACTIVIDAD + ", " + COL_CONDICION_SALUD + ", " + IMAGEN + " FROM " + TABLA_MASCOTAS + " WHERE " + COL_ID_MASCOTA + " = ?";
-    private static final String SELECT_ALL_MASCOTAS_BY_USER_ID = "SELECT " + COL_ID_MASCOTA + ", " + COL_ID_USUARIO + ", " + COL_NOMBRE + ", " + COL_SEXO + ", " + COL_FECHA_NACIMIENTO + ", " + COL_RAZA + ", " + COL_PESO_KG + ", " + COL_ESTERILIZADO + ", " + COL_FECHA_REGISTRO + ", " + COL_TIPO + ", " + COL_NIVEL_ACTIVIDAD + ", " + COL_CONDICION_SALUD + ", " + IMAGEN + " FROM " + TABLA_MASCOTAS + " WHERE " + COL_ID_USUARIO + " = ?";
-    private static final String DELETE_MASCOTA_SQL = "DELETE FROM " + TABLA_MASCOTAS + " WHERE " + COL_ID_MASCOTA + " = ?";
-    // La consulta UPDATE_MASCOTA_SQL es:
-    // UPDATE mascotas SET nombre = ?, sexo = ?, fecha_nacimiento = ?, raza = ?, peso_kg = ?, esterilizado = ?, tipo = ?, nivel_actividad = ?, condicion_salud = ?, imagen = ? WHERE id_mascota = ?
-    // Esto significa que los parámetros 1-9 son los campos de SET, el 10 es IMAGEN, y el 11 es ID_MASCOTA
-    private static final String UPDATE_MASCOTA_SQL = "UPDATE " + TABLA_MASCOTAS + " SET " + COL_NOMBRE + " = ?, " + COL_SEXO + " = ?, " + COL_FECHA_NACIMIENTO + " = ?, " + COL_RAZA + " = ?, " + COL_PESO_KG + " = ?, " + COL_ESTERILIZADO + " = ?, " + COL_TIPO + " = ?, " + COL_NIVEL_ACTIVIDAD + " = ?, " + COL_CONDICION_SALUD + " = ?, " + IMAGEN + " = ? WHERE " + COL_ID_MASCOTA + " = ?";
-
+    public MascotaDAO() {
+        // La conexión se obtiene en cada método para asegurar que esté abierta y cerrada correctamente
+    }
 
     /**
      * Inserta una nueva mascota en la base de datos.
-     * @param mascota Objeto Mascota con los datos a insertar.
-     * @return true si la mascota fue insertada exitosamente, false en caso contrario.
-     * @throws SQLException Si ocurre un error de SQL durante la operación.
+     *
+     * @param mascota El objeto Mascota a insertar.
+     * @return true si la inserción fue exitosa, false en caso contrario.
+     * @throws SQLException Si ocurre un error de SQL.
      */
     public boolean insertarMascota(Mascota mascota) throws SQLException {
+        String sql = "INSERT INTO mascotas (id_usuario, nombre, sexo, fecha_nacimiento, raza, peso_kg, " +
+                     "esterilizado, tipo, nivel_actividad, condicion_salud, imagen, color, chip_id, observaciones, " +
+                     "objetivo_peso, estado_reproductor, num_cachorros, tipo_alimento_predeterminado, kcal_por_100g_alimento_predeterminado) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         boolean rowInserted = false;
-        try (Connection connection = ConexionDB.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_MASCOTA_SQL, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            preparedStatement.setInt(1, mascota.getIdUsuario());
-            preparedStatement.setString(2, mascota.getNombre());
-            preparedStatement.setString(3, mascota.getSexo());
-            // Convertir java.util.Date a java.sql.Date para la base de datos
-            preparedStatement.setDate(4, new Date(mascota.getFechaNacimiento().getTime()));
-            preparedStatement.setString(5, mascota.getRaza());
-            preparedStatement.setDouble(6, mascota.getPesoKg());
-            preparedStatement.setBoolean(7, mascota.isEsterilizado());
-            preparedStatement.setString(8, mascota.getTipo());
-            preparedStatement.setString(9, mascota.getNivelActividad());
-            preparedStatement.setString(10, mascota.getCondicionSalud()); // Este es el 10º parámetro
-            preparedStatement.setString(11, mascota.getImagen());       // Este es el 11º parámetro (IMAGEN)
+            statement.setInt(1, mascota.getIdUsuario());
+            statement.setString(2, mascota.getNombre());
+            statement.setString(3, mascota.getSexo());
+            statement.setTimestamp(4, new Timestamp(mascota.getFechaNacimiento().getTime())); // Convertir Date a Timestamp
+            statement.setString(5, mascota.getRaza());
+            statement.setDouble(6, mascota.getPeso()); // Usa getPeso() del modelo
+            statement.setBoolean(7, mascota.isEsterilizado());
+            statement.setString(8, mascota.getTipo());
+            statement.setString(9, mascota.getNivelActividad());
+            statement.setString(10, mascota.getCondicionSalud());
+            statement.setString(11, mascota.getImagen());
+            statement.setString(12, mascota.getColor());
+            statement.setString(13, mascota.getChipID()); // Puede ser NULL
+            statement.setString(14, mascota.getObservaciones());
+            statement.setString(15, mascota.getObjetivoPeso());
+            statement.setString(16, mascota.getEstadoReproductor());
+            
+            // Manejar Integer y Double que pueden ser null
+            if (mascota.getNumCachorros() != null) {
+                statement.setInt(17, mascota.getNumCachorros());
+            } else {
+                statement.setNull(17, java.sql.Types.INTEGER);
+            }
+            statement.setString(18, mascota.getTipoAlimentoPredeterminado());
+            if (mascota.getKcalPor100gAlimentoPredeterminado() != null) {
+                statement.setDouble(19, mascota.getKcalPor100gAlimentoPredeterminado());
+            } else {
+                statement.setNull(19, java.sql.Types.DOUBLE);
+            }
 
-            rowInserted = preparedStatement.executeUpdate() > 0;
+            rowInserted = statement.executeUpdate() > 0;
 
             if (rowInserted) {
-                try (ResultSet rs = preparedStatement.getGeneratedKeys()) {
+                try (ResultSet rs = statement.getGeneratedKeys()) {
                     if (rs.next()) {
-                        mascota.setIdMascota(rs.getInt(1));
+                        mascota.setIdMascota(rs.getInt(1)); // Asignar el ID generado a la mascota
                     }
                 }
             }
-        } catch (SQLException e) {
-            printSQLException(e); // Log del error
-            throw e; // Relanza la excepción para que el llamador la capture
         }
         return rowInserted;
     }
 
     /**
+     * Actualiza la información de una mascota existente en la base de datos.
+     *
+     * @param mascota El objeto Mascota con la información actualizada.
+     * @return true si la actualización fue exitosa, false en caso contrario.
+     * @throws SQLException Si ocurre un error de SQL.
+     */
+    public boolean actualizarMascota(Mascota mascota) throws SQLException {
+        String sql = "UPDATE mascotas SET nombre = ?, sexo = ?, fecha_nacimiento = ?, raza = ?, peso_kg = ?, " +
+                     "esterilizado = ?, tipo = ?, nivel_actividad = ?, condicion_salud = ?, imagen = ?, " +
+                     "color = ?, chip_id = ?, observaciones = ?, objetivo_peso = ?, estado_reproductor = ?, " +
+                     "num_cachorros = ?, tipo_alimento_predeterminado = ?, kcal_por_100g_alimento_predeterminado = ? " +
+                     "WHERE id_mascota = ? AND id_usuario = ?";
+        boolean rowUpdated = false;
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
+
+            statement.setString(1, mascota.getNombre());
+            statement.setString(2, mascota.getSexo());
+            statement.setTimestamp(3, new Timestamp(mascota.getFechaNacimiento().getTime()));
+            statement.setString(4, mascota.getRaza());
+            statement.setDouble(5, mascota.getPeso()); // Usa getPeso() del modelo
+            statement.setBoolean(6, mascota.isEsterilizado());
+            statement.setString(7, mascota.getTipo());
+            statement.setString(8, mascota.getNivelActividad());
+            statement.setString(9, mascota.getCondicionSalud());
+            statement.setString(10, mascota.getImagen());
+            statement.setString(11, mascota.getColor());
+            statement.setString(12, mascota.getChipID()); // Puede ser NULL
+            statement.setString(13, mascota.getObservaciones());
+            statement.setString(14, mascota.getObjetivoPeso());
+            statement.setString(15, mascota.getEstadoReproductor());
+            
+            // Manejar Integer y Double que pueden ser null
+            if (mascota.getNumCachorros() != null) {
+                statement.setInt(16, mascota.getNumCachorros());
+            } else {
+                statement.setNull(16, java.sql.Types.INTEGER);
+            }
+            statement.setString(17, mascota.getTipoAlimentoPredeterminado());
+            if (mascota.getKcalPor100gAlimentoPredeterminado() != null) {
+                statement.setDouble(18, mascota.getKcalPor100gAlimentoPredeterminado());
+            } else {
+                statement.setNull(18, java.sql.Types.DOUBLE);
+            }
+
+            statement.setInt(19, mascota.getIdMascota());
+            statement.setInt(20, mascota.getIdUsuario());
+
+            rowUpdated = statement.executeUpdate() > 0;
+        }
+        return rowUpdated;
+    }
+
+    /**
      * Obtiene una mascota por su ID.
+     *
      * @param idMascota El ID de la mascota.
-     * @return El objeto Mascota si se encuentra, null en caso contrario.
-     * @throws SQLException Si ocurre un error de SQL durante la operación.
+     * @return El objeto Mascota si se encuentra, o null si no.
+     * @throws SQLException Si ocurre un error de SQL.
      */
     public Mascota obtenerMascotaPorId(int idMascota) throws SQLException {
         Mascota mascota = null;
-        try (Connection connection = ConexionDB.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_MASCOTA_BY_ID)) {
+        String sql = "SELECT id_mascota, id_usuario, nombre, sexo, fecha_nacimiento, raza, peso_kg, " +
+                     "esterilizado, fecha_registro, tipo, nivel_actividad, condicion_salud, imagen, " +
+                     "color, chip_id, observaciones, objetivo_peso, estado_reproductor, num_cachorros, " +
+                     "tipo_alimento_predeterminado, kcal_por_100g_alimento_predeterminado " +
+                     "FROM mascotas WHERE id_mascota = ?";
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
 
-            preparedStatement.setInt(1, idMascota);
-            try (ResultSet rs = preparedStatement.executeQuery()) {
-                if (rs.next()) {
+            statement.setInt(1, idMascota);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
                     mascota = new Mascota();
-                    mascota.setIdMascota(rs.getInt(COL_ID_MASCOTA));
-                    mascota.setIdUsuario(rs.getInt(COL_ID_USUARIO));
-                    mascota.setNombre(rs.getString(COL_NOMBRE));
-                    mascota.setSexo(rs.getString(COL_SEXO));
+                    mascota.setIdMascota(resultSet.getInt("id_mascota"));
+                    mascota.setIdUsuario(resultSet.getInt("id_usuario"));
+                    mascota.setNombre(resultSet.getString("nombre"));
+                    mascota.setSexo(resultSet.getString("sexo"));
+                    mascota.setFechaNacimiento(new Date(resultSet.getTimestamp("fecha_nacimiento").getTime())); // Convertir Timestamp a Date
+                    mascota.setRaza(resultSet.getString("raza"));
+                    mascota.setPeso(resultSet.getDouble("peso_kg")); // Leer de peso_kg
+                    mascota.setEsterilizado(resultSet.getBoolean("esterilizado"));
+                    mascota.setFechaRegistro(resultSet.getTimestamp("fecha_registro"));
+                    mascota.setTipo(resultSet.getString("tipo"));
+                    mascota.setNivelActividad(resultSet.getString("nivel_actividad"));
+                    mascota.setCondicionSalud(resultSet.getString("condicion_salud"));
+                    mascota.setImagen(resultSet.getString("imagen"));
+                    mascota.setColor(resultSet.getString("color"));
+                    mascota.setChipID(resultSet.getString("chip_id"));
+                    mascota.setObservaciones(resultSet.getString("observaciones"));
+                    mascota.setObjetivoPeso(resultSet.getString("objetivo_peso"));
+                    mascota.setEstadoReproductor(resultSet.getString("estado_reproductor"));
                     
-                    // Convertir java.sql.Date a java.util.Date para evitar UnsupportedOperationException
-                    java.sql.Date sqlDate = rs.getDate(COL_FECHA_NACIMIENTO);
-                    if (sqlDate != null) {
-                        mascota.setFechaNacimiento(new java.util.Date(sqlDate.getTime()));
-                    } else {
-                        mascota.setFechaNacimiento(null); // Manejar caso de fecha nula
-                    }
+                    // Manejar Integer y Double que pueden ser null
+                    Integer numCachorros = resultSet.getObject("num_cachorros", Integer.class);
+                    mascota.setNumCachorros(numCachorros);
 
-                    mascota.setRaza(rs.getString(COL_RAZA));
-                    mascota.setPesoKg(rs.getDouble(COL_PESO_KG));
-                    mascota.setEsterilizado(rs.getBoolean(COL_ESTERILIZADO));
-                    mascota.setFechaRegistro(rs.getTimestamp(COL_FECHA_REGISTRO));
-                    mascota.setTipo(rs.getString(COL_TIPO));
-                    mascota.setNivelActividad(rs.getString(COL_NIVEL_ACTIVIDAD));
-                    mascota.setCondicionSalud(rs.getString(COL_CONDICION_SALUD));
-                    mascota.setImagen(rs.getString(IMAGEN)); // CORRECCIÓN: Asignar a setImagen()
+                    mascota.setTipoAlimentoPredeterminado(resultSet.getString("tipo_alimento_predeterminado"));
+                    Double kcalPor100gAlimentoPredeterminado = resultSet.getObject("kcal_por_100g_alimento_predeterminado", Double.class);
+                    mascota.setKcalPor100gAlimentoPredeterminado(kcalPor100gAlimentoPredeterminado);
                 }
             }
-        } catch (SQLException e) {
-            printSQLException(e); // Log del error
-            throw e; // Relanza la excepción
         }
         return mascota;
     }
 
     /**
-     * Selecciona todas las mascotas de un usuario específico.
-     * @param idUsuario ID del usuario cuyas mascotas se quieren obtener.
+     * Obtiene todas las mascotas de un usuario específico.
+     *
+     * @param idUsuario El ID del usuario.
      * @return Una lista de objetos Mascota.
-     * @throws SQLException Si ocurre un error de SQL durante la operación.
+     * @throws SQLException Si ocurre un error de SQL.
      */
     public List<Mascota> obtenerTodasMascotasPorUsuario(int idUsuario) throws SQLException {
-        List<Mascota> mascotas = new ArrayList<>();
-        try (Connection connection = ConexionDB.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_MASCOTAS_BY_USER_ID)) {
+        List<Mascota> listaMascotas = new ArrayList<>();
+        String sql = "SELECT id_mascota, id_usuario, nombre, sexo, fecha_nacimiento, raza, peso_kg, " +
+                     "esterilizado, fecha_registro, tipo, nivel_actividad, condicion_salud, imagen, " +
+                     "color, chip_id, observaciones, objetivo_peso, estado_reproductor, num_cachorros, " +
+                     "tipo_alimento_predeterminado, kcal_por_100g_alimento_predeterminado " +
+                     "FROM mascotas WHERE id_usuario = ?";
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
 
-            preparedStatement.setInt(1, idUsuario);
-            try (ResultSet rs = preparedStatement.executeQuery()) {
-                while (rs.next()) {
+            statement.setInt(1, idUsuario);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
                     Mascota mascota = new Mascota();
-                    mascota.setIdMascota(rs.getInt(COL_ID_MASCOTA));
-                    mascota.setIdUsuario(rs.getInt(COL_ID_USUARIO));
-                    mascota.setNombre(rs.getString(COL_NOMBRE));
-                    mascota.setSexo(rs.getString(COL_SEXO));
-                    
-                    // Convertir java.sql.Date a java.util.Date para evitar UnsupportedOperationException
-                    java.sql.Date sqlDate = rs.getDate(COL_FECHA_NACIMIENTO);
-                    if (sqlDate != null) {
-                        mascota.setFechaNacimiento(new java.util.Date(sqlDate.getTime()));
-                    } else {
-                        mascota.setFechaNacimiento(null); // Manejar caso de fecha nula
-                    }
+                    mascota.setIdMascota(resultSet.getInt("id_mascota"));
+                    mascota.setIdUsuario(resultSet.getInt("id_usuario"));
+                    mascota.setNombre(resultSet.getString("nombre"));
+                    mascota.setSexo(resultSet.getString("sexo"));
+                    mascota.setFechaNacimiento(new Date(resultSet.getTimestamp("fecha_nacimiento").getTime()));
+                    mascota.setRaza(resultSet.getString("raza"));
+                    mascota.setPeso(resultSet.getDouble("peso_kg")); // Leer de peso_kg
+                    mascota.setEsterilizado(resultSet.getBoolean("esterilizado"));
+                    mascota.setFechaRegistro(resultSet.getTimestamp("fecha_registro"));
+                    mascota.setTipo(resultSet.getString("tipo"));
+                    mascota.setNivelActividad(resultSet.getString("nivel_actividad"));
+                    mascota.setCondicionSalud(resultSet.getString("condicion_salud"));
+                    mascota.setImagen(resultSet.getString("imagen"));
+                    mascota.setColor(resultSet.getString("color"));
+                    mascota.setChipID(resultSet.getString("chip_id"));
+                    mascota.setObservaciones(resultSet.getString("observaciones"));
+                    mascota.setObjetivoPeso(resultSet.getString("objetivo_peso"));
+                    mascota.setEstadoReproductor(resultSet.getString("estado_reproductor"));
 
-                    mascota.setRaza(rs.getString(COL_RAZA));
-                    mascota.setPesoKg(rs.getDouble(COL_PESO_KG));
-                    mascota.setEsterilizado(rs.getBoolean(COL_ESTERILIZADO));
-                    mascota.setFechaRegistro(rs.getTimestamp(COL_FECHA_REGISTRO));
-                    mascota.setTipo(rs.getString(COL_TIPO));
-                    mascota.setNivelActividad(rs.getString(COL_NIVEL_ACTIVIDAD));
-                    mascota.setCondicionSalud(rs.getString(COL_CONDICION_SALUD));
-                    mascota.setImagen(rs.getString(IMAGEN)); // CORRECCIÓN: Asignar a setImagen()
-                    mascotas.add(mascota);
+                    // Manejar Integer y Double que pueden ser null
+                    Integer numCachorros = resultSet.getObject("num_cachorros", Integer.class);
+                    mascota.setNumCachorros(numCachorros);
+
+                    mascota.setTipoAlimentoPredeterminado(resultSet.getString("tipo_alimento_predeterminado"));
+                    Double kcalPor100gAlimentoPredeterminado = resultSet.getObject("kcal_por_100g_alimento_predeterminado", Double.class);
+                    mascota.setKcalPor100gAlimentoPredeterminado(kcalPor100gAlimentoPredeterminado);
+
+                    listaMascotas.add(mascota);
                 }
             }
-        } catch (SQLException e) {
-            printSQLException(e); // Log del error
-            throw e; // Relanza la excepción
         }
-        return mascotas;
+        return listaMascotas;
     }
 
     /**
-     * Elimina una mascota de la base de datos.
-     * @param idMascota ID de la mascota a eliminar.
-     * @return true si la mascota fue eliminada exitosamente, false en caso contrario.
-     * @throws SQLException Si ocurre un error de SQL durante la operación.
+     * Elimina una mascota de la base de datos por su ID.
+     *
+     * @param idMascota El ID de la mascota a eliminar.
+     * @return true si la eliminación fue exitosa, false en caso contrario.
+     * @throws SQLException Si ocurre un error de SQL.
      */
     public boolean eliminarMascota(int idMascota) throws SQLException {
+        String sql = "DELETE FROM mascotas WHERE id_mascota = ?";
         boolean rowDeleted = false;
-        try (Connection connection = ConexionDB.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_MASCOTA_SQL)) {
-
-            preparedStatement.setInt(1, idMascota);
-            rowDeleted = preparedStatement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            printSQLException(e); // Log del error
-            throw e; // Relanza la excepción
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
+            statement.setInt(1, idMascota);
+            rowDeleted = statement.executeUpdate() > 0;
         }
         return rowDeleted;
-    }
-
-    /**
-     * Actualiza los datos de una mascota en la base de datos.
-     * @param mascota Objeto Mascota con los datos actualizados.
-     * @return true si la mascota fue actualizada exitosamente, false en caso contrario.
-     * @throws SQLException Si ocurre un error de SQL durante la operación.
-     */
-    public boolean actualizarMascota(Mascota mascota) throws SQLException {
-        boolean rowUpdated = false;
-        try (Connection connection = ConexionDB.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_MASCOTA_SQL)) {
-
-            preparedStatement.setString(1, mascota.getNombre());
-            preparedStatement.setString(2, mascota.getSexo());
-            // Convertir java.util.Date a java.sql.Date para la base de datos
-            preparedStatement.setDate(3, new Date(mascota.getFechaNacimiento().getTime()));
-            preparedStatement.setString(4, mascota.getRaza());
-            preparedStatement.setDouble(5, mascota.getPesoKg());
-            preparedStatement.setBoolean(6, mascota.isEsterilizado());
-            preparedStatement.setString(7, mascota.getTipo());
-            preparedStatement.setString(8, mascota.getNivelActividad());
-            preparedStatement.setString(9, mascota.getCondicionSalud());
-            preparedStatement.setString(10, mascota.getImagen()); // CORRECCIÓN: IMAGEN es el 10º parámetro
-            preparedStatement.setInt(11, mascota.getIdMascota()); // CORRECCIÓN: ID_MASCOTA es el 11º parámetro (WHERE clause)
-
-            rowUpdated = preparedStatement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            printSQLException(e); // Log del error
-            throw e; // Relanza la excepción
-        }
-        return rowUpdated;
-    }
-
-
-    /**
-     * Imprime información detallada de una SQLException.
-     * @param ex La SQLException a imprimir.
-     */
-    private void printSQLException(SQLException ex) {
-        for (Throwable e : ex) {
-            if (e instanceof SQLException) {
-                String sqlState = ((SQLException) e).getSQLState();
-                if (!ignoreSQLException(sqlState)) {
-                    e.printStackTrace(System.err);
-                    System.err.println("SQLState: " + (sqlState != null ? sqlState : "N/A"));
-                    System.err.println("Error Code: " + ((SQLException) e).getErrorCode());
-                    System.err.println("Message: " + e.getMessage());
-                    Throwable t = ex.getCause();
-                    while (t != null) {
-                        System.out.println("Cause: " + t);
-                        t = t.getCause();
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Ignora ciertas SQLStates que no son errores críticos (por ejemplo, advertencias).
-     * @param sqlState El SQLState a verificar.
-     * @return true si el SQLState debe ser ignorado, false en caso contrario.
-     */
-    private boolean ignoreSQLException(String sqlState) {
-        if (sqlState == null) {
-            return false;
-        }
-        if (sqlState.equalsIgnoreCase("02000")) { // NO DATA
-            return true;
-        }
-        return false;
     }
 }

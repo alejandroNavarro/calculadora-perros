@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory; // O JacksonFactory.getDefaultInstance() si usas otra versión
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.gson.Gson; // Para manejar respuestas JSON
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -32,9 +32,9 @@ public class UsuarioServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private UsuarioDAO usuarioDAO;
 
-    // REEMPLAZA ESTO con el ID de Cliente de Google REAL que obtuviste de Google Cloud Console
+    // ¡IMPORTANTE! REEMPLAZA ESTO con el ID de Cliente de Google REAL que obtuviste de Google Cloud Console
     // Debe ser el mismo que usas en tu registro.jsp y login.jsp
-    private static final String GOOGLE_CLIENT_ID = "TU_CLIENT_ID_DE_GOOGLE.apps.googleusercontent.com"; // <-- ¡IMPORTANTE!
+    private static final String GOOGLE_CLIENT_ID = "595405886937-tf6nba4e60c0dvu6t9n8u5a5cd4nruju.apps.googleusercontent.com"; 
 
     private GoogleIdTokenVerifier verifier; // Declarado aquí para ser accesible en toda la clase
 
@@ -44,7 +44,6 @@ public class UsuarioServlet extends HttpServlet {
     public void init() {
         this.usuarioDAO = new UsuarioDAO();
         // Inicializar el verificador de tokens de Google
-        // Asegúrate de que JacksonFactory.getDefaultInstance() sea compatible con tu versión de Jackson
         this.verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
                 .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
                 .build();
@@ -67,11 +66,11 @@ public class UsuarioServlet extends HttpServlet {
 
         if ("login".equals(action)) {
             login(request, response);
-        } else if ("registro".equals(action)) {
+        } else if ("register".equals(action)) {
             registro(request, response);
-        } else if ("googleRegister".equals(action)) { // ¡NUEVA ACCIÓN PARA REGISTRO CON GOOGLE!
+        } else if ("googleRegister".equals(action)) {
             handleGoogleRegister(request, response);
-        } else if ("googleLogin".equals(action)) { // Si también lo usas para login.jsp
+        } else if ("googleLogin".equals(action)) {
             handleGoogleLogin(request, response);
         }
         else {
@@ -93,6 +92,9 @@ public class UsuarioServlet extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
         String contextPath = request.getContextPath();
+
+        // Almacenar los valores para precargar el formulario en caso de error
+        request.setAttribute("oldEmail", email); // Guardar email para precargar
 
         if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             request.setAttribute("message", "Por favor, introduce tu email y contraseña.");
@@ -144,15 +146,58 @@ public class UsuarioServlet extends HttpServlet {
         String nombre = request.getParameter("nombre");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        String confirmPassword = request.getParameter("confirmPassword"); // Capturar confirmación de contraseña
         String contextPath = request.getContextPath();
 
-        if (nombre == null || nombre.trim().isEmpty() || email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
-            request.setAttribute("message", "Todos los campos son obligatorios.");
+        // Almacenar los valores para precargar el formulario en caso de error
+        request.setAttribute("oldNombre", nombre);
+        request.setAttribute("oldEmail", email);
+
+        // --- Validación del lado del servidor ---
+        if (nombre == null || nombre.trim().isEmpty()) {
+            request.setAttribute("message", "El nombre es obligatorio.");
             request.setAttribute("messageType", "danger");
             request.getRequestDispatcher("/registro.jsp").forward(request, response);
-            System.out.println("UsuarioServlet - registro: Campos vacíos.");
+            System.out.println("UsuarioServlet - registro: Nombre vacío.");
             return;
         }
+
+        if (email == null || email.trim().isEmpty()) {
+            request.setAttribute("message", "El correo electrónico es obligatorio.");
+            request.setAttribute("messageType", "danger");
+            request.getRequestDispatcher("/registro.jsp").forward(request, response);
+            System.out.println("UsuarioServlet - registro: Email vacío.");
+            return;
+        } else if (!email.matches("\\S+@\\S+\\.\\S+")) { // Validación básica de formato de email
+            request.setAttribute("message", "Introduce un formato de correo electrónico válido.");
+            request.setAttribute("messageType", "danger");
+            request.getRequestDispatcher("/registro.jsp").forward(request, response);
+            System.out.println("UsuarioServlet - registro: Formato de email inválido: " + email);
+            return;
+        }
+
+        if (password == null || password.trim().isEmpty()) {
+            request.setAttribute("message", "La contraseña es obligatoria.");
+            request.setAttribute("messageType", "danger");
+            request.getRequestDispatcher("/registro.jsp").forward(request, response);
+            System.out.println("UsuarioServlet - registro: Contraseña vacía.");
+            return;
+        } else if (password.length() < 8) { // Validación de longitud mínima de contraseña
+            request.setAttribute("message", "La contraseña debe tener al menos 8 caracteres.");
+            request.setAttribute("messageType", "danger");
+            request.getRequestDispatcher("/registro.jsp").forward(request, response);
+            System.out.println("UsuarioServlet - registro: Contraseña demasiado corta.");
+            return;
+        }
+
+        if (confirmPassword == null || !password.equals(confirmPassword)) { // Validación de coincidencia de contraseñas
+            request.setAttribute("message", "Las contraseñas no coinciden.");
+            request.setAttribute("messageType", "danger");
+            request.getRequestDispatcher("/registro.jsp").forward(request, response);
+            System.out.println("UsuarioServlet - registro: Las contraseñas no coinciden.");
+            return;
+        }
+        // --- Fin Validación del lado del servidor ---
 
         try {
             // Antes de insertar, verifica si el email ya existe para evitar duplicados
@@ -165,15 +210,15 @@ public class UsuarioServlet extends HttpServlet {
             }
 
             Usuario nuevoUsuario = new Usuario(nombre, email, password); // Asume que el constructor o DAO maneja el hashing
-            // CAMBIO CLAVE AQUÍ: Se cambió 'registrarUsuario' a 'insertarUsuario'
             if (usuarioDAO.insertarUsuario(nuevoUsuario)) {
                 HttpSession session = request.getSession();
                 session.setAttribute("usuario", nuevoUsuario); // Guarda el objeto Usuario completo
                 session.setAttribute("message", "¡Registro exitoso! Bienvenido, " + nuevoUsuario.getNombre() + ".");
                 session.setAttribute("messageType", "success");
                 
-                response.sendRedirect(contextPath + "/MascotaServlet"); // Redirigir a MascotaServlet o tu panel principal
-                System.out.println("UsuarioServlet - registro: Registro exitoso para usuario ID: " + nuevoUsuario.getIdUsuario() + ". Redirigiendo a /MascotaServlet.");
+                // REDIRIGIR A LA PÁGINA DE BIENVENIDA DESPUÉS DEL REGISTRO TRADICIONAL
+                response.sendRedirect(contextPath + "/welcome.jsp"); 
+                System.out.println("UsuarioServlet - registro: Registro exitoso para usuario ID: " + nuevoUsuario.getIdUsuario() + ". Redirigiendo a /welcome.jsp.");
             } else {
                 request.setAttribute("message", "Error al registrar. Inténtalo de nuevo más tarde.");
                 request.setAttribute("messageType", "danger");
@@ -212,9 +257,12 @@ public class UsuarioServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         String contextPath = request.getContextPath(); // Para redirecciones
 
+        System.out.println("handleGoogleRegister: Recibido id_token: " + (idTokenString != null ? idTokenString.substring(0, Math.min(idTokenString.length(), 50)) + "..." : "null")); // Log truncado
+
         if (idTokenString == null || idTokenString.isEmpty()) {
             responseMap.put("success", "false");
             responseMap.put("message", "No se recibió el token de Google.");
+            System.err.println("handleGoogleRegister: Error: Token de Google es nulo o vacío.");
             out.print(gson.toJson(responseMap));
             out.flush();
             return;
@@ -228,6 +276,8 @@ public class UsuarioServlet extends HttpServlet {
                 String email = payload.getEmail();
                 String name = (String) payload.get("name");
                 // String pictureUrl = (String) payload.get("picture"); // Puedes obtener la URL de la imagen si la necesitas
+
+                System.out.println("handleGoogleRegister: Token verificado. Email: " + email + ", Nombre: " + name);
 
                 Usuario usuarioExistente = usuarioDAO.obtenerUsuarioPorEmail(email); // Asume este método en tu DAO
 
@@ -249,8 +299,9 @@ public class UsuarioServlet extends HttpServlet {
                     session.setAttribute("message", "¡Registro exitoso con Google! Bienvenido, " + usuarioLogueado.getNombre() + ".");
                     session.setAttribute("messageType", "success");
                     responseMap.put("success", "true");
-                    responseMap.put("redirectUrl", contextPath + "/MascotaServlet"); // Redirige al panel principal
-                    System.out.println("UsuarioServlet - handleGoogleRegister: Nuevo usuario Google registrado y logueado: " + email);
+                    // REDIRIGIR A LA PÁGINA DE BIENVENIDA DESPUÉS DEL REGISTRO CON GOOGLE
+                    responseMap.put("redirectUrl", contextPath + "/welcome.jsp"); 
+                    System.out.println("UsuarioServlet - handleGoogleRegister: Nuevo usuario Google registrado y logueado: " + email + ". Redirigiendo a /welcome.jsp.");
 
                 } else {
                     // El usuario YA existe, simplemente lo logueamos
@@ -260,23 +311,23 @@ public class UsuarioServlet extends HttpServlet {
                     session.setAttribute("messageType", "info"); // Mensaje informativo
                     responseMap.put("success", "true");
                     responseMap.put("redirectUrl", contextPath + "/MascotaServlet"); // Redirige al panel principal
-                    System.out.println("UsuarioServlet - handleGoogleRegister: Usuario Google existente logueado: " + email);
+                    System.out.println("UsuarioServlet - handleGoogleRegister: Usuario Google existente logueado: " + email + ". Redirigiendo a /MascotaServlet.");
                 }
 
             } else {
                 responseMap.put("success", "false");
-                responseMap.put("message", "Token de Google no válido.");
-                System.err.println("UsuarioServlet - handleGoogleRegister: Token de Google no válido.");
+                responseMap.put("message", "Token de Google no válido o verificado.");
+                System.err.println("handleGoogleRegister: Error: Token de Google no válido o verificación fallida.");
             }
         } catch (SQLException e) {
             responseMap.put("success", "false");
             responseMap.put("message", "Error de base de datos al procesar el registro con Google: " + e.getMessage());
-            System.err.println("UsuarioServlet - handleGoogleRegister: Error SQL: " + e.getMessage());
+            System.err.println("handleGoogleRegister: Error SQL: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
             responseMap.put("success", "false");
             responseMap.put("message", "Error interno del servidor al procesar el registro con Google: " + e.getMessage());
-            System.err.println("UsuarioServlet - handleGoogleRegister: Error inesperado: " + e.getMessage());
+            System.err.println("handleGoogleRegister: Error inesperado: " + e.getMessage());
             e.printStackTrace();
         } finally {
             out.print(gson.toJson(responseMap));
@@ -284,27 +335,96 @@ public class UsuarioServlet extends HttpServlet {
         }
     }
 
-    // Si tienes un método handleGoogleLogin para login.jsp, aquí estaría
+    /**
+     * Maneja la lógica de inicio de sesión con Google.
+     * Este método es un placeholder, ya que handleGoogleRegister puede manejar ambos casos.
+     * Si no hay una necesidad específica de un flujo de login de Google separado, puede ser eliminado.
+     * @param request Objeto HttpServletRequest.
+     * @param response Objeto HttpServletResponse.
+     * @throws IOException Si ocurre un error de E/S al escribir la respuesta JSON.
+     */
     private void handleGoogleLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        // Lógica similar a handleGoogleRegister, pero quizás con mensajes ligeramente diferentes
-        // y sin intentar "registrar" si el usuario no existe (solo loguear si ya está)
-        // O simplemente puedes hacer que handleGoogleRegister sea el único punto de entrada para ambos casos.
-        // Por simplicidad, si solo usas el botón en registro.jsp, este método podría no ser necesario.
-        // Si lo necesitas, su implementación sería casi idéntica a handleGoogleRegister, pero quizás
-        // la redirección inicial si el usuario no existe podría ser a registro.jsp en lugar de loguearlo directamente.
-        // Para este ejercicio, asumiremos que handleGoogleRegister es el principal.
-        
-        // Si no lo usas, puedes eliminar esta declaración o dejarla vacía.
-        // Si lo usas, asegúrate de que esté implementado.
+        String idTokenString = request.getParameter("id_token");
+        Gson gson = new Gson();
+        Map<String, String> responseMap = new HashMap<>();
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
-        Gson gson = new Gson();
-        Map<String, String> responseMap = new HashMap<>();
-        responseMap.put("success", "false");
-        responseMap.put("message", "handleGoogleLogin no implementado o no es el punto de entrada principal.");
-        out.print(gson.toJson(responseMap));
-        out.flush();
+        String contextPath = request.getContextPath();
+
+        System.out.println("handleGoogleLogin: Recibido id_token: " + (idTokenString != null ? idTokenString.substring(0, Math.min(idTokenString.length(), 50)) + "..." : "null")); // Log truncado
+
+        if (idTokenString == null || idTokenString.isEmpty()) {
+            responseMap.put("success", "false");
+            responseMap.put("message", "No se recibió el token de Google.");
+            System.err.println("handleGoogleLogin: Error: Token de Google es nulo o vacío.");
+            out.print(gson.toJson(responseMap));
+            out.flush();
+            return;
+        }
+
+        try {
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            if (idToken != null) {
+                GoogleIdToken.Payload payload = idToken.getPayload();
+                String email = payload.getEmail();
+                String name = (String) payload.get("name");
+
+                System.out.println("handleGoogleLogin: Token verificado. Email: " + email + ", Nombre: " + name);
+
+                Usuario usuarioExistente = usuarioDAO.obtenerUsuarioPorEmail(email);
+
+                if (usuarioExistente == null) {
+                    // Si el usuario no existe, lo registramos y redirigimos a la página de bienvenida
+                    Usuario nuevoUsuario = new Usuario();
+                    nuevoUsuario.setEmail(email);
+                    nuevoUsuario.setNombre(name != null ? name : "Usuario Google");
+                    nuevoUsuario.setPassword(""); // Sin contraseña para social login
+                    nuevoUsuario.setRol("user");
+
+                    usuarioDAO.insertarUsuario(nuevoUsuario);
+                    usuarioExistente = usuarioDAO.obtenerUsuarioPorEmail(email); // Obtener con ID generado
+                    
+                    HttpSession session = request.getSession();
+                    session.setAttribute("usuario", usuarioExistente);
+                    session.setAttribute("message", "¡Registro exitoso con Google! Bienvenido, " + usuarioExistente.getNombre() + ".");
+                    session.setAttribute("messageType", "success");
+                    responseMap.put("success", "true");
+                    // REDIRIGIR A LA PÁGINA DE BIENVENIDA DESPUÉS DEL REGISTRO CON GOOGLE (si no existe)
+                    responseMap.put("redirectUrl", contextPath + "/welcome.jsp");
+                    System.out.println("UsuarioServlet - handleGoogleLogin: Nuevo usuario Google registrado y logueado: " + email + ". Redirigiendo a /welcome.jsp.");
+
+                } else {
+                    // El usuario ya existe, simplemente lo logueamos y redirigimos a MascotaServlet
+                    HttpSession session = request.getSession();
+                    session.setAttribute("usuario", usuarioExistente);
+                    session.setAttribute("message", "¡Bienvenido de nuevo, " + usuarioExistente.getNombre() + "!");
+                    session.setAttribute("messageType", "success");
+                    responseMap.put("success", "true");
+                    responseMap.put("redirectUrl", contextPath + "/MascotaServlet");
+                    System.out.println("UsuarioServlet - handleGoogleLogin: Usuario Google existente logueado: " + email + ". Redirigiendo a /MascotaServlet.");
+                }
+
+            } else {
+                responseMap.put("success", "false");
+                responseMap.put("message", "Token de Google no válido o verificado.");
+                System.err.println("handleGoogleLogin: Error: Token de Google no válido o verificación fallida.");
+            }
+        } catch (SQLException e) {
+            responseMap.put("success", "false");
+            responseMap.put("message", "Error de base de datos al procesar el login con Google: " + e.getMessage());
+            System.err.println("handleGoogleLogin: Error SQL: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            responseMap.put("success", "false");
+            responseMap.put("message", "Error interno del servidor al procesar el login con Google: " + e.getMessage());
+            System.err.println("handleGoogleLogin: Error inesperado: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            out.print(gson.toJson(responseMap));
+            out.flush();
+        }
     }
 
 

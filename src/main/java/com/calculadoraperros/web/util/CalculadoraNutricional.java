@@ -26,55 +26,58 @@ public class CalculadoraNutricional {
     private static final Map<String, Double> FACTORES_AJUSTE_DER = new HashMap<>();
 
     static {
-        // Factores para perros ADULTOS
-        // Perros Esterilizados/Castrados (menos activos metabólicamente)
-        FACTORES_AJUSTE_DER.put("ADULTO_CASTRADO_BAJO", 1.4); // Perros con mínima actividad, en casa.
-        FACTORES_AJUSTE_DER.put("ADULTO_CASTRADO_NORMAL", 1.6);    // Paseos diarios ligeros.
-        FACTORES_AJUSTE_DER.put("ADULTO_CASTRADO_ACTIVO", 1.8);       // Paseos largos, juego regular.
-        FACTORES_AJUSTE_DER.put("ADULTO_CASTRADO_MUY_ACTIVO", 2.0); // Perros de agility, canicross, etc.
+        // --- Factores para PERROS ---
+        // Adultos Esterilizados/Castrados
+        FACTORES_AJUSTE_DER.put("PERRO_ADULTO_CASTRADO_SEDENTARIO", 1.4);
+        FACTORES_AJUSTE_DER.put("PERRO_ADULTO_CASTRADO_MODERADO", 1.6);
+        FACTORES_AJUSTE_DER.put("PERRO_ADULTO_CASTRADO_ACTIVO", 1.8);
+        FACTORES_AJUSTE_DER.put("PERRO_ADULTO_CASTRADO_MUY_ACTIVO", 2.0);
 
-        // Perros Intactos (No esterilizados/castrados)
-        FACTORES_AJUSTE_DER.put("ADULTO_INTACTO_BAJO", 1.6);
-        FACTORES_AJUSTE_DER.put("ADULTO_INTACTO_NORMAL", 1.8);
-        FACTORES_AJUSTE_DER.put("ADULTO_INTACTO_ACTIVO", 2.2);
-        FACTORES_AJUSTE_DER.put("ADULTO_INTACTO_MUY_ACTIVO", 2.5); // O incluso más para perros de trabajo extremo (3.0-5.0)
+        // Adultos Intactos (No esterilizados/castrados)
+        FACTORES_AJUSTE_DER.put("PERRO_ADULTO_INTACTO_SEDENTARIO", 1.6);
+        FACTORES_AJUSTE_DER.put("PERRO_ADULTO_INTACTO_MODERADO", 1.8);
+        FACTORES_AJUSTE_DER.put("PERRO_ADULTO_INTACTO_ACTIVO", 2.2);
+        FACTORES_AJUSTE_DER.put("PERRO_ADULTO_INTACTO_MUY_ACTIVO", 2.5);
 
-        // Factores para CACHORROS DE PERRO (dependen mucho de la edad y el ritmo de crecimiento)
-        FACTORES_AJUSTE_DER.put("CACHORRO_PERRO_0_4_MESES", 3.0);       // Mayor demanda energética
-        FACTORES_AJUSTE_DER.put("CACHORRO_PERRO_4_8_MESES", 2.5);       // Crecimiento activo pero más lento que recién nacidos
-        FACTORES_AJUSTE_DER.put("CACHORRO_PERRO_8_12_MESES", 2.0);      // Etapa final de cachorro
+        // Cachorros de Perro (por edad)
+        FACTORES_AJUSTE_DER.put("PERRO_CACHORRO_0_4_MESES", 3.0);
+        FACTORES_AJUSTE_DER.put("PERRO_CACHORRO_4_8_MESES", 2.5);
+        FACTORES_AJUSTE_DER.put("PERRO_CACHORRO_8_12_MESES", 2.0);
 
-        // Factores para GATOS ADULTOS
-        FACTORES_AJUSTE_DER.put("GATO_CASTRADO_BAJO", 1.0);
-        FACTORES_AJUSTE_DER.put("GATO_CASTRADO_NORMAL", 1.2);
-        FACTORES_AJUSTE_DER.put("GATO_CASTRADO_ACTIVO", 1.4);
+        // --- Factores para GATOS ---
+        // Adultos Esterilizados/Castrados
+        FACTORES_AJUSTE_DER.put("GATO_ADULTO_CASTRADO_SEDENTARIO", 1.0); // Típicamente más bajo para gatos
+        FACTORES_AJUSTE_DER.put("GATO_ADULTO_CASTRADO_MODERADO", 1.2);
+        FACTORES_AJUSTE_DER.put("GATO_ADULTO_CASTRADO_ACTIVO", 1.4);
 
-        FACTORES_AJUSTE_DER.put("GATO_INTACTO_BAJO", 1.0);
-        FACTORES_AJUSTE_DER.put("GATO_INTACTO_NORMAL", 1.4);
-        FACTORES_AJUSTE_DER.put("GATO_INTACTO_ACTIVO", 1.6);
+        // Adultos Intactos
+        FACTORES_AJUSTE_DER.put("GATO_ADULTO_INTACTO_SEDENTARIO", 1.2);
+        FACTORES_AJUSTE_DER.put("GATO_ADULTO_INTACTO_MODERADO", 1.4);
+        FACTORES_AJUSTE_DER.put("GATO_ADULTO_INTACTO_ACTIVO", 1.6);
 
-        // Factores para CACHORROS DE GATO
-        FACTORES_AJUSTE_DER.put("CACHORRO_GATO_0_4_MESES", 3.0);
-        FACTORES_AJUSTE_DER.put("CACHORRO_GATO_4_8_MESES", 2.5);
-        FACTORES_AJUSTE_DER.put("CACHORRO_GATO_8_12_MESES", 2.0);
+        // Cachorros de Gato (por edad)
+        FACTORES_AJUSTE_DER.put("GATO_CACHORRO_0_4_MESES", 3.0);
+        FACTORES_AJUSTE_DER.put("GATO_CACHORRO_4_8_MESES", 2.5);
+        FACTORES_AJUSTE_DER.put("GATO_CACHORRO_8_12_MESES", 2.0);
 
-        // Factores para Objetivos de Peso
-        FACTORES_AJUSTE_DER.put("OBJETIVO_PERDIDA_PESO", 0.8); // Reducir un 20% de las calorías de mantenimiento
-        FACTORES_AJUSTE_DER.put("OBJETIVO_GANANCIA_PESO", 1.2); // Aumentar un 20% de las calorías de mantenimiento
+        // --- Factores Generales (Aplicables a ambos, ajustados en la lógica) ---
+        // Gestación (se puede especificar por especie si hay diferencias significativas)
+        FACTORES_AJUSTE_DER.put("GESTACION_PRIMER_TERCIO", 1.8); // General
+        FACTORES_AJUSTE_DER.put("GESTACION_ULTIMO_TERCIO", 2.2); // General (más alto)
 
-        // Factores para Estados Reproductivos/Especiales (Aplicables a ambos, perro y gato)
-        FACTORES_AJUSTE_DER.put("GESTACION_PRIMER_TERCIO", 1.8);
-        FACTORES_AJUSTE_DER.put("GESTACION_ULTIMO_TERCIO", 2.0);
-        
-        // Lactancia - Factores genéricos, se ajustarán en la lógica según el número de cachorros
-        FACTORES_AJUSTE_DER.put("LACTANCIA_1_CACHORRO", 2.5); // Base para 1 cachorro
-        FACTORES_AJUSTE_DER.put("LACTANCIA_2_CACHORROS", 3.0);
-        FACTORES_AJUSTE_DER.put("LACTANCIA_3_4_CACHORROS", 4.0);
-        FACTORES_AJUSTE_DER.put("LACTANCIA_MAS_4_CACHORROS", 5.0); // Puede ser hasta 8.0 para camadas muy grandes.
+        // Lactancia (base, luego se ajusta por número de crías en calcularFactorDER)
+        FACTORES_AJUSTE_DER.put("LACTANCIA_BASE_PERRO", 2.5); // Factor base para perros
+        FACTORES_AJUSTE_DER.put("LACTANCIA_BASE_GATO", 2.5);  // Factor base para gatos
 
-        // Factores para Enfermedades/Condiciones Médicas (Muy Variables)
-        FACTORES_AJUSTE_DER.put("ENFERMEDAD_HIPOMETABOLICA", 0.9);
-        FACTORES_AJUSTE_DER.put("ENFERMEDAD_HIPERMETABOLICA", 1.2);
+        // Objetivo de Peso (aplicado como multiplicador final)
+        FACTORES_AJUSTE_DER.put("OBJETIVO_PERDIDA_PESO", 0.8); // Reducir un 20%
+        FACTORES_AJUSTE_DER.put("OBJETIVO_GANANCIA_PESO", 1.2); // Aumentar un 20%
+
+        // Condición de Salud (ejemplos, muy simplificado)
+        FACTORES_AJUSTE_DER.put("CONDICION_SENIOR_PERRO", 0.9); // Reducción para perros senior
+        FACTORES_AJUSTE_DER.put("CONDICION_SENIOR_GATO", 0.85); // Reducción para gatos senior
+        FACTORES_AJUSTE_DER.put("CONDICION_HIPOMETABOLICA", 0.9); // Ej: Hipotiroidismo
+        FACTORES_AJUSTE_DER.put("CONDICION_HIPERMETABOLICA", 1.2); // Ej: Hipertiroidismo, recuperación de cirugía
     }
 
     // Calorías por 100 gramos (o por kilogramo, pero aquí usamos 100g para facilidad de cálculo)
@@ -83,11 +86,11 @@ public class CalculadoraNutricional {
     private static final Map<String, Double> KCAL_POR_100G_ALIMENTO = new HashMap<>();
     static {
         KCAL_POR_100G_ALIMENTO.put("PIENSO_SECO_MANTENIMIENTO", 350.0);    // Pienso adulto estándar (300-400 kcal/100g)
-        KCAL_POR_100G_ALIMENTO.put("PIENSO_SECO_ALTA_ENERGIA", 400.0);       // Pienso para cachorros, rendimiento (380-450 kcal/100g)
-        KCAL_POR_100G_ALIMENTO.put("PIENSO_SECO_LIGHT", 300.0);             // Pienso bajo en calorías para control de peso (280-320 kcal/100g)
-        KCAL_POR_100G_ALIMENTO.put("COMIDA_HUMEDA_LATA", 100.0);            // Comida húmeda (75-120 kcal/100g, alto contenido de agua)
-        KCAL_POR_100G_ALIMENTO.put("DIETA_BARF_CRUDA", 180.0);              // Dieta cruda (muy variable, 150-250 kcal/100g dependiendo de la composición)
-        KCAL_POR_100G_ALIMENTO.put("PIENSO_VETERINARIO_RENAL", 320.0);      // Ejemplo de dieta específica
+        KCAL_POR_100G_ALIMENTO.put("PIENSO_SECO_ALTA_ENERGIA", 400.0);        // Pienso para cachorros, rendimiento (380-450 kcal/100g)
+        KCAL_POR_100G_ALIMENTO.put("PIENSO_SECO_LIGHT", 300.0);              // Pienso bajo en calorías para control de peso (280-320 kcal/100g)
+        KCAL_POR_100G_ALIMENTO.put("COMIDA_HUMEDA_LATA", 100.0);             // Comida húmeda (75-120 kcal/100g, alto contenido de agua)
+        KCAL_POR_100G_ALIMENTO.put("DIETA_BARF_CRUDA", 180.0);               // Dieta cruda (muy variable, 150-250 kcal/100g dependiendo de la composición)
+        KCAL_POR_100G_ALIMENTO.put("PIENSO_VETERINARIO_RENAL", 320.0);        // Ejemplo de dieta específica
         KCAL_POR_100G_ALIMENTO.put("PIENSO_VETERINARIO_DIABETICO", 340.0);
     }
 
@@ -108,7 +111,7 @@ public class CalculadoraNutricional {
         // Utiliza Math.pow para el exponente fraccionario.
         // Para pesos muy pequeños (<2kg), algunos usan RER = 70 * Peso en kg.
         if (pesoKg < 2) {
-             return 70 * pesoKg;
+            return 70 * pesoKg;
         } else {
             return 70 * Math.pow(pesoKg, 0.75);
         }
@@ -119,7 +122,7 @@ public class CalculadoraNutricional {
      * Este método prioriza factores de edad (cachorro, gestación/lactancia) y condición de salud sobre los de adulto general.
      *
      * @param mascota Objeto Mascota con sus características.
-     * @param nivelActividadForm Nivel de actividad seleccionado en el formulario ("BAJO", "NORMAL", "ACTIVO", "MUY_ACTIVO").
+     * @param nivelActividadForm Nivel de actividad seleccionado en el formulario ("SEDENTARIO", "MODERADO", "ACTIVO", "MUY_ACTIVO").
      * @param objetivoPesoForm Objetivo de peso seleccionado en el formulario ("MANTENER", "PERDER", "GANAR").
      * @param estadoReproductorForm Estado reproductor seleccionado en el formulario ("GESTACION", "LACTANCIA", "NINGUNO").
      * @param numCachorrosForm Si LACTANCIA, número de cachorros.
@@ -127,10 +130,9 @@ public class CalculadoraNutricional {
      * @return Factor de ajuste para la DER.
      */
     public double calcularFactorDER(Mascota mascota, String nivelActividadForm, String objetivoPesoForm, String estadoReproductorForm, int numCachorrosForm, boolean tieneEnfermedadForm) {
-        double merFactor = 0.0;
-        boolean condicionEspecialAplicada = false;
-
-        // Calcular edad en meses y años desde la fecha de nacimiento de la mascota
+        double baseFactor = 0.0;
+        
+        // Calcular edad
         LocalDate fechaNacimientoLocal = mascota.getFechaNacimiento().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate fechaActual = LocalDate.now();
         Period periodo = Period.between(fechaNacimientoLocal, fechaActual);
@@ -138,117 +140,97 @@ public class CalculadoraNutricional {
         int edadAnos = periodo.getYears();
 
         String condicionSaludNormalizada = mascota.getCondicionSalud() != null ? mascota.getCondicionSalud().trim().toLowerCase() : "";
+        String tipoMascota = mascota.getTipo().toUpperCase(); // "PERRO" or "GATO"
 
-        if ("perro".equalsIgnoreCase(mascota.getTipo())) {
-            // --- Prioridad ALTA para Condiciones de Salud/Etapas de Vida Específicas (Perros) ---
-            if (condicionSaludNormalizada.contains("gestacion") || "GESTACION".equalsIgnoreCase(estadoReproductorForm)) {
-                if (condicionSaludNormalizada.contains("temprana") || "GESTACION_TEMPRANA".equalsIgnoreCase(estadoReproductorForm)) {
-                    merFactor = FACTORES_AJUSTE_DER.get("GESTACION_PRIMER_TERCIO");
-                } else if (condicionSaludNormalizada.contains("tardia") || "GESTACION_TARDIA".equalsIgnoreCase(estadoReproductorForm)) {
-                    merFactor = FACTORES_AJUSTE_DER.get("GESTACION_ULTIMO_TERCIO");
-                } else {
-                    merFactor = FACTORES_AJUSTE_DER.get("GESTACION_PRIMER_TERCIO"); // Default si es solo "GESTACION"
-                }
-                condicionEspecialAplicada = true;
-            } else if (condicionSaludNormalizada.contains("lactancia") || "LACTANCIA".equalsIgnoreCase(estadoReproductorForm)) {
-                if (numCachorrosForm == 1) merFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_1_CACHORRO");
-                else if (numCachorrosForm == 2) merFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_2_CACHORROS");
-                else if (numCachorrosForm >= 3 && numCachorrosForm <= 4) merFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_3_4_CACHORROS");
-                else if (numCachorrosForm > 4) merFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_MAS_4_CACHORROS");
-                else merFactor = FACTORES_AJUSTE_DER.get("ADULTO_INTACTO_NORMAL"); // Fallback si numCachorros no es válido
-                condicionEspecialAplicada = true;
-            } else if (edadTotalMeses < 12) { // Cachorros de perro
+        // --- Paso 1: Determinar el factor base según Especie, Edad, Esterilización y Nivel de Actividad ---
+        if ("PERRO".equals(tipoMascota)) {
+            if (edadTotalMeses < 12) { // Cachorro
                 if (edadTotalMeses <= 4) {
-                    merFactor = FACTORES_AJUSTE_DER.get("CACHORRO_PERRO_0_4_MESES");
+                    baseFactor = FACTORES_AJUSTE_DER.get("PERRO_CACHORRO_0_4_MESES");
                 } else if (edadTotalMeses <= 8) {
-                    merFactor = FACTORES_AJUSTE_DER.get("CACHORRO_PERRO_4_8_MESES");
+                    baseFactor = FACTORES_AJUSTE_DER.get("PERRO_CACHORRO_4_8_MESES");
                 } else { // 8-12 meses
-                    merFactor = FACTORES_AJUSTE_DER.get("CACHORRO_PERRO_8_12_MESES");
+                    baseFactor = FACTORES_AJUSTE_DER.get("PERRO_CACHORRO_8_12_MESES");
                 }
-                condicionEspecialAplicada = true;
-            } else if (condicionSaludNormalizada.contains("bajo peso") || "GANAR".equalsIgnoreCase(objetivoPesoForm)) {
-                merFactor = FACTORES_AJUSTE_DER.get("OBJETIVO_GANANCIA_PESO");
-                condicionEspecialAplicada = true;
-            } else if (condicionSaludNormalizada.contains("obesidad") || "PERDER".equalsIgnoreCase(objetivoPesoForm)) {
-                merFactor = FACTORES_AJUSTE_DER.get("OBJETIVO_PERDIDA_PESO");
-                condicionEspecialAplicada = true;
-            } else if (condicionSaludNormalizada.contains("senior") || edadAnos >= 7) { // Perros senior a partir de 7 años
-                // Para seniors, el factor base es el de un adulto normal, luego se ajusta por actividad
-                String claveActividadSenior = "ADULTO_" + (mascota.isEsterilizado() ? "CASTRADO_" : "INTACTO_") + nivelActividadForm.toUpperCase();
-                // Los seniors suelen tener un metabolismo ligeramente más lento, se puede ajustar el factor base
-                merFactor = FACTORES_AJUSTE_DER.getOrDefault(claveActividadSenior, 1.6) * 0.9; // Reducir un 10% para senior
-                condicionEspecialAplicada = true;
-            } else if (tieneEnfermedadForm) {
-                // Esto es un placeholder. La lógica real de enfermedad es compleja.
-                merFactor = FACTORES_AJUSTE_DER.getOrDefault("ENFERMEDAD_HIPERMETABOLICA", 1.2); // Default a un ligero aumento
-                condicionEspecialAplicada = true;
+            } else { // Perro Adulto
+                String sterilizationStatus = mascota.isEsterilizado() ? "CASTRADO" : "INTACTO";
+                String activityLevel = nivelActividadForm.toUpperCase();
+                String key = "PERRO_ADULTO_" + sterilizationStatus + "_" + activityLevel;
+                baseFactor = FACTORES_AJUSTE_DER.getOrDefault(key, 1.6); // Valor por defecto para perro adulto
             }
-
-            // --- Lógica para Perros ADULTOS SALUDABLES (si no se aplicó una condición especial) ---
-            if (!condicionEspecialAplicada) {
-                String claveActividad = "ADULTO_" + (mascota.isEsterilizado() ? "CASTRADO_" : "INTACTO_") + nivelActividadForm.toUpperCase();
-                merFactor = FACTORES_AJUSTE_DER.getOrDefault(claveActividad, 1.6); // Valor por defecto sensato
-            }
-
-        } else if ("gato".equalsIgnoreCase(mascota.getTipo())) {
-            // --- Prioridad ALTA para Condiciones de Salud/Etapas de Vida Específicas (Gatos) ---
-            if (condicionSaludNormalizada.contains("gestacion") || "GESTACION".equalsIgnoreCase(estadoReproductorForm)) {
-                if (condicionSaludNormalizada.contains("temprana") || "GESTACION_TEMPRANA".equalsIgnoreCase(estadoReproductorForm)) {
-                    merFactor = FACTORES_AJUSTE_DER.get("GESTACION_PRIMER_TERCIO");
-                } else if (condicionSaludNormalizada.contains("tardia") || "GESTACION_TARDIA".equalsIgnoreCase(estadoReproductorForm)) {
-                    merFactor = FACTORES_AJUSTE_DER.get("GESTACION_ULTIMO_TERCIO");
-                } else {
-                    merFactor = FACTORES_AJUSTE_DER.get("GESTACION_PRIMER_TERCIO"); // Default si es solo "GESTACION"
-                }
-                condicionEspecialAplicada = true;
-            } else if (condicionSaludNormalizada.contains("lactancia") || "LACTANCIA".equalsIgnoreCase(estadoReproductorForm)) {
-                if (numCachorrosForm == 1) merFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_1_CACHORRO");
-                else if (numCachorrosForm == 2) merFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_2_CACHORROS");
-                else if (numCachorrosForm >= 3 && numCachorrosForm <= 4) merFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_3_4_CACHORROS");
-                else if (numCachorrosForm > 4) merFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_MAS_4_CACHORROS");
-                else merFactor = FACTORES_AJUSTE_DER.get("GATO_INTACTO_NORMAL"); // Fallback
-                condicionEspecialAplicada = true;
-            } else if (edadTotalMeses < 12) { // Cachorros de gato
+        } else if ("GATO".equals(tipoMascota)) {
+            if (edadTotalMeses < 12) { // Gatito
                 if (edadTotalMeses <= 4) {
-                    merFactor = FACTORES_AJUSTE_DER.get("CACHORRO_GATO_0_4_MESES");
+                    baseFactor = FACTORES_AJUSTE_DER.get("GATO_CACHORRO_0_4_MESES");
                 } else if (edadTotalMeses <= 8) {
-                    merFactor = FACTORES_AJUSTE_DER.get("CACHORRO_GATO_4_8_MESES");
+                    baseFactor = FACTORES_AJUSTE_DER.get("GATO_CACHORRO_4_8_MESES");
                 } else { // 8-12 meses
-                    merFactor = FACTORES_AJUSTE_DER.get("CACHORRO_GATO_8_12_MESES");
+                    baseFactor = FACTORES_AJUSTE_DER.get("GATO_CACHORRO_8_12_MESES");
                 }
-                condicionEspecialAplicada = true;
-            } else if (condicionSaludNormalizada.contains("bajo peso") || "GANAR".equalsIgnoreCase(objetivoPesoForm)) {
-                merFactor = FACTORES_AJUSTE_DER.get("OBJETIVO_GANANCIA_PESO");
-                condicionEspecialAplicada = true;
-            } else if (condicionSaludNormalizada.contains("obesidad") || "PERDER".equalsIgnoreCase(objetivoPesoForm)) {
-                merFactor = FACTORES_AJUSTE_DER.get("OBJETIVO_PERDIDA_PESO");
-                condicionEspecialAplicada = true;
-            } else if (condicionSaludNormalizada.contains("senior") || edadAnos >= 11) { // Gatos senior a partir de 11 años
-                String claveActividadSenior = "GATO_" + (mascota.isEsterilizado() ? "CASTRADO_" : "INTACTO_") + nivelActividadForm.toUpperCase();
-                merFactor = FACTORES_AJUSTE_DER.getOrDefault(claveActividadSenior, 1.2) * 0.9; // Reducir un 10% para senior
-                condicionEspecialAplicada = true;
-            } else if (tieneEnfermedadForm) {
-                merFactor = FACTORES_AJUSTE_DER.getOrDefault("ENFERMEDAD_HIPERMETABOLICA", 1.0);
-                condicionEspecialAplicada = true;
-            }
-
-            // --- Lógica para Gatos ADULTOS SALUDABLES (si no se aplicó una condición especial) ---
-            if (!condicionEspecialAplicada) {
-                String claveActividad = "GATO_" + (mascota.isEsterilizado() ? "CASTRADO_" : "INTACTO_") + nivelActividadForm.toUpperCase();
-                merFactor = FACTORES_AJUSTE_DER.getOrDefault(claveActividad, 1.2); // Valor por defecto sensato para gatos
+            } else { // Gato Adulto
+                String sterilizationStatus = mascota.isEsterilizado() ? "CASTRADO" : "INTACTO";
+                String activityLevel = nivelActividadForm.toUpperCase();
+                String key = "GATO_ADULTO_" + sterilizationStatus + "_" + activityLevel;
+                baseFactor = FACTORES_AJUSTE_DER.getOrDefault(key, 1.2); // Valor por defecto para gato adulto
             }
         } else {
-            System.err.println("Advertencia: Tipo de mascota no reconocido: '" + mascota.getTipo() + "'. Usando MER por defecto para un perro adulto saludable.");
-            merFactor = 1.6; // Fallback general si el tipo de mascota no es "perro" ni "gato"
+            System.err.println("Advertencia: Tipo de mascota no reconocido: '" + mascota.getTipo() + "'. Usando factor base predeterminado (1.6).");
+            baseFactor = 1.6; // Fallback general si el tipo de mascota no es "perro" ni "gato"
         }
 
-        // Si por alguna razón el merFactor sigue siendo 0, establecer un valor por defecto seguro.
-        if (merFactor == 0.0) {
-            System.err.println("Advertencia: merFactor no pudo ser determinado. Estableciendo un valor predeterminado seguro de 1.6.");
-            merFactor = 1.6;
+        // --- Paso 2: Aplicar modificadores/sobrescrituras para condiciones especiales (mayor prioridad) ---
+        double finalFactor = baseFactor; // Se inicia con el factor base
+
+        // Estado Reproductivo (sobrescribe factores generales de adulto/cachorro si aplica)
+        if ("GESTACION".equalsIgnoreCase(estadoReproductorForm)) {
+            // Se asume que el formulario o la condición de salud indicaría el tercio de gestación
+            if (condicionSaludNormalizada.contains("temprana") || "GESTACION_TEMPRANA".equalsIgnoreCase(estadoReproductorForm)) {
+                finalFactor = FACTORES_AJUSTE_DER.get("GESTACION_PRIMER_TERCIO");
+            } else if (condicionSaludNormalizada.contains("tardia") || "GESTACION_TARDIA".equalsIgnoreCase(estadoReproductorForm)) {
+                finalFactor = FACTORES_AJUSTE_DER.get("GESTACION_ULTIMO_TERCIO");
+            } else { // Si solo se indica "GESTACION" sin especificar tercio
+                finalFactor = FACTORES_AJUSTE_DER.get("GESTACION_PRIMER_TERCIO"); // Valor conservador
+            }
+        } else if ("LACTANCIA".equalsIgnoreCase(estadoReproductorForm)) {
+            int actualNumCachorros = (numCachorrosForm > 0) ? numCachorrosForm : (mascota.getNumCachorros() != null ? mascota.getNumCachorros() : 1); // Por defecto 1 si no especificado
+
+            if ("PERRO".equals(tipoMascota)) {
+                // Ajuste para perros en lactancia: base + 0.5 por cachorro adicional
+                finalFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_BASE_PERRO") + (actualNumCachorros - 1) * 0.5;
+            } else if ("GATO".equals(tipoMascota)) {
+                // Ajuste para gatos en lactancia: base + 0.7 por gatito adicional (mayor demanda)
+                finalFactor = FACTORES_AJUSTE_DER.get("LACTANCIA_BASE_GATO") + (actualNumCachorros - 1) * 0.7;
+            }
+        } else if (("PERDER".equalsIgnoreCase(objetivoPesoForm) || "PERDER".equalsIgnoreCase(mascota.getObjetivoPeso())) && !"GANAR".equalsIgnoreCase(objetivoPesoForm)) {
+            finalFactor *= FACTORES_AJUSTE_DER.get("OBJETIVO_PERDIDA_PESO");
+        } else if (("GANAR".equalsIgnoreCase(objetivoPesoForm) || "GANAR".equalsIgnoreCase(mascota.getObjetivoPeso())) && !"PERDER".equalsIgnoreCase(objetivoPesoForm)) {
+            finalFactor *= FACTORES_AJUSTE_DER.get("OBJETIVO_GANANCIA_PESO");
         }
 
-        return merFactor;
+        // Estado Senior (aplicado como ajuste final si no está ya cubierto por otras condiciones específicas)
+        if ("PERRO".equals(tipoMascota) && edadAnos >= 7) {
+            finalFactor *= FACTORES_AJUSTE_DER.get("CONDICION_SENIOR_PERRO");
+        } else if ("GATO".equals(tipoMascota) && edadAnos >= 11) {
+            finalFactor *= FACTORES_AJUSTE_DER.get("CONDICION_SENIOR_GATO");
+        }
+
+        // Condiciones de Salud (marcadores generales, se pueden expandir con más detalle)
+        if (tieneEnfermedadForm) {
+            if (condicionSaludNormalizada.contains("hipometabolica")) {
+                finalFactor *= FACTORES_AJUSTE_DER.get("CONDICION_HIPOMETABOLICA");
+            } else if (condicionSaludNormalizada.contains("hipermetabolica")) {
+                finalFactor *= FACTORES_AJUSTE_DER.get("CONDICION_HIPERMETABOLICA");
+            }
+            // Aquí se podrían añadir más condiciones específicas si se tienen datos y lógica para ellas
+        }
+
+        // Asegurar un valor por defecto sensato si por alguna razón el factor final es cero o negativo
+        if (finalFactor <= 0.0) {
+            System.err.println("Advertencia: Factor DER calculado es cero o negativo. Estableciendo un valor predeterminado seguro de 1.6.");
+            finalFactor = 1.6;
+        }
+
+        return finalFactor;
     }
 
     /**
@@ -262,16 +244,30 @@ public class CalculadoraNutricional {
     }
 
     /**
-     * Calcula los gramos de comida necesarios al día.
+     * Calcula los gramos de comida necesarios al día, priorizando el valor calórico
+     * predeterminado de la mascota, y si no está disponible, usando el tipo de alimento.
+     *
      * @param der Demanda Energética Diaria (kcal).
-     * @param tipoAlimento Clave del tipo de alimento (ej. "PIENSO_SECO_MANTENIMIENTO").
+     * @param mascota El objeto Mascota, que puede contener el tipo de alimento predeterminado
+     * y sus kcal/100g.
      * @return Gramos de alimento necesarios al día.
-     * @throws IllegalArgumentException si el tipo de alimento no es reconocido o no tiene valor calórico.
+     * @throws IllegalArgumentException si no se puede determinar el valor calórico del alimento.
      */
-    public double calcularGramosComida(double der, String tipoAlimento) {
-        Double kcalPor100g = KCAL_POR_100G_ALIMENTO.get(tipoAlimento.toUpperCase());
+    public double calcularGramosComida(double der, Mascota mascota) {
+        Double kcalPor100g = null;
+
+        // 1. Intentar usar las kcal/100g predeterminadas de la mascota si están disponibles
+        if (mascota.getKcalPor100gAlimentoPredeterminado() != null && mascota.getKcalPor100gAlimentoPredeterminado() > 0) {
+            kcalPor100g = mascota.getKcalPor100gAlimentoPredeterminado();
+        } else if (mascota.getTipoAlimentoPredeterminado() != null && !mascota.getTipoAlimentoPredeterminado().isEmpty()) {
+            // 2. Si no, intentar usar el tipo de alimento predeterminado de la mascota para buscar en el mapa
+            String tipoAlimentoNormalizado = mascota.getTipoAlimentoPredeterminado().toUpperCase();
+            kcalPor100g = KCAL_POR_100G_ALIMENTO.get(tipoAlimentoNormalizado);
+        }
+
         if (kcalPor100g == null || kcalPor100g <= 0) {
-            throw new IllegalArgumentException("Tipo de alimento '" + tipoAlimento + "' no reconocido o valor calórico inválido. Consulta los tipos de alimento disponibles.");
+            throw new IllegalArgumentException("No se pudo determinar el valor calórico del alimento para la mascota '" + mascota.getNombre() + "'. " +
+                                               "Asegúrate de que el tipo de alimento predeterminado sea válido o que las kcal/100g estén especificadas.");
         }
         // Gramos = (DER / kcal_por_100g) * 100
         return (der / kcalPor100g) * 100;

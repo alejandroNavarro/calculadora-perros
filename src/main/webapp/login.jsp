@@ -8,51 +8,57 @@
     <title>Iniciar Sesión - Calculadora Perros</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css"> <%-- Este es el archivo que contiene los nuevos estilos --%>
+    <link rel="stylesheet" href="css/style.css"> <%-- Este es el archivo que contiene los estilos --%>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header class="app-header"> <%-- Barra superior --%>
         <div class="text-center">
-            <span class="dog-icon">🐾</span>
+            <span class="dog-icon">🐶</span> <%-- Icono de perro en la cabecera --%>
             <h1>Calculadora de Perros</h1>
             <p>Herramientas útiles para el cuidado de tu mascota.</p>
         </div>
+        <%-- La barra de navegación se ha eliminado de aquí para la página de login --%>
     </header>
 
     <div class="login-wrapper"> <%-- Contenedor para centrar verticalmente --%>
         <div class="login-container">
-            <h2 class="text-center mb-4">🐾 Iniciar Sesión</h2> <%-- El título ahora tiene el estilo del nuevo CSS --%>
+            <h2 class="text-center mb-4">Iniciar Sesión</h2> <%-- Sin icono en el título --%>
 
-            <%-- Mensaje de error o éxito (lee de sesión y lo limpia) --%>
+            <%-- Mensaje de error o éxito (lee de request y luego de sesión) --%>
             <%
-                String message = (String) session.getAttribute("message");
-                String messageType = (String) session.getAttribute("messageType");
+                String message = (String) request.getAttribute("message"); // Primero del request
+                String messageType = (String) request.getAttribute("messageType");
+
+                if (message == null || message.isEmpty()) { // Si no hay mensaje en request, busca en session
+                    message = (String) session.getAttribute("message");
+                    messageType = (String) session.getAttribute("messageType");
+                    // Limpiar de la sesión una vez leído
+                    if (message != null && !message.isEmpty()) {
+                        session.removeAttribute("message");
+                        session.removeAttribute("messageType");
+                    }
+                }
+
                 if (message != null && !message.isEmpty()) {
             %>
-                <div class="alert alert-<%= messageType %>" role="alert">
+                <div class="alert alert-<%= messageType %> alert-dismissible fade show" role="alert">
                     <%= message %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <%
-                    session.removeAttribute("message"); // Limpiar de la sesión una vez leído
-                    session.removeAttribute("messageType"); // Limpiar de la sesión una vez leído
                 }
 
-                String error = (String) request.getAttribute("error"); // Mensajes de error específicos del request (si los hay)
-                if (error != null && !error.isEmpty()) {
-            %>
-                <div class="alert alert-danger" role="alert">
-                    <%= error %>
-                </div>
-            <%
-                }
+                // Recuperar valor antiguo del email en caso de error de validación
+                String oldEmail = (String) request.getAttribute("oldEmail");
             %>
 
             <form action="UsuarioServlet" method="post" id="loginForm">
                 <input type="hidden" name="action" value="login">
                 <div class="mb-3">
                     <label for="email" class="form-label">Correo Electrónico</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <input type="email" class="form-control" id="email" name="email" value="<%= oldEmail != null ? oldEmail : "" %>" required>
+                    <div class="invalid-feedback" id="emailError"></div>
                 </div>
                 <div class="mb-3 password-input-group">
                     <label for="password" class="form-label">Contraseña</label>
@@ -60,6 +66,7 @@
                     <button type="button" id="togglePassword" class="password-toggle" title="Mostrar/Ocultar Contraseña">
                         <i class="fas fa-eye"></i>
                     </button>
+                    <div class="invalid-feedback" id="passwordError"></div>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Entrar</button>
             </form>
@@ -74,6 +81,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             const passwordField = document.getElementById('password');
             const togglePasswordButton = document.getElementById('togglePassword');
+            const loginForm = document.getElementById('loginForm');
+            const emailInput = document.getElementById('email');
+            const emailError = document.getElementById('emailError');
+            const passwordError = document.getElementById('passwordError');
 
             // Intento de borrar la contraseña al cargar la página para evitar autocompletado persistente
             if (passwordField) {
@@ -100,6 +111,39 @@
                     }
                 });
             }
+
+            // Validación del formulario antes de enviar
+            loginForm.addEventListener('submit', function(event) {
+                let isValid = true;
+
+                // Resetear mensajes de error
+                emailInput.classList.remove('is-invalid');
+                emailError.textContent = '';
+                passwordField.classList.remove('is-invalid');
+                passwordError.textContent = '';
+
+                // Validación de Email
+                if (emailInput.value.trim() === '') {
+                    emailInput.classList.add('is-invalid');
+                    emailError.textContent = 'El correo electrónico es obligatorio.';
+                    isValid = false;
+                } else if (!/\S+@\S+\.\S+/.test(emailInput.value)) {
+                    emailInput.classList.add('is-invalid');
+                    emailError.textContent = 'Introduce un formato de correo electrónico válido.';
+                    isValid = false;
+                }
+
+                // Validación de Contraseña
+                if (passwordField.value.trim() === '') {
+                    passwordField.classList.add('is-invalid');
+                    passwordError.textContent = 'La contraseña es obligatoria.';
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    event.preventDefault(); // Detener el envío del formulario si hay errores
+                }
+            });
         });
     </script>
 </body>

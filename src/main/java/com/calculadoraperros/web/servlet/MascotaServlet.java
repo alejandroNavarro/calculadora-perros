@@ -3,7 +3,7 @@ package com.calculadoraperros.web.servlet;
 import com.calculadoraperros.web.dao.MascotaDAO;
 import com.calculadoraperros.web.modelo.Mascota;
 import com.calculadoraperros.web.modelo.Usuario;
-import com.calculadoraperros.web.util.CalculadoraNutricional;
+import com.calculadoraperros.web.util.CalculadoraNutricional; // Importar la clase CalculadoraNutricional
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,6 +16,7 @@ import jakarta.servlet.http.Part; // Importación necesaria para manejar archivo
 import java.io.File; // Para manejar archivos en el sistema de archivos
 import java.io.IOException;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException; // Importación específica para este error
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -27,24 +28,22 @@ import java.util.UUID; // Para generar nombres de archivo únicos
 @WebServlet("/MascotaServlet")
 @jakarta.servlet.annotation.MultipartConfig(
     fileSizeThreshold = 1024 * 1024 * 2, // 2 MB
-    maxFileSize = 1024 * 1024 * 10,    // 10 MB
-    maxRequestSize = 1024 * 1024 * 50  // 50 MB
+    maxFileSize = 1024 * 1024 * 10,      // 10 MB
+    maxRequestSize = 1024 * 1024 * 50    // 50 MB
 )
 public class MascotaServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private MascotaDAO mascotaDAO;
-    private CalculadoraNutricional calculadoraNutricional;
 
     // Directorio donde se guardarán las imágenes subidas
     // Asegúrate de que este directorio exista y sea escribible por el servidor
     private static final String UPLOAD_DIRECTORY = "uploads";
 
     /**
-     * Inicializa el Servlet y crea instancias de MascotaDAO y CalculadoraNutricional.
+     * Inicializa el Servlet y crea instancias de MascotaDAO.
      */
     public void init() {
         this.mascotaDAO = new MascotaDAO();
-        this.calculadoraNutricional = new CalculadoraNutricional();
         System.out.println("MascotaServlet inicializado.");
     }
 
@@ -58,8 +57,10 @@ public class MascotaServlet extends HttpServlet {
     private void cargarMascotas(HttpServletRequest request, HttpSession session, Usuario usuarioActual) throws SQLException {
         List<Mascota> mascotas = null;
 
+        // Intentar obtener mascotas de la sesión primero
         mascotas = (List<Mascota>) session.getAttribute("mascotasUsuario");
 
+        // Si no están en sesión o la sesión está vacía, cargarlas de la DB
         if (mascotas == null || mascotas.isEmpty()) {
             mascotas = this.mascotaDAO.obtenerTodasMascotasPorUsuario(usuarioActual.getIdUsuario());
             session.setAttribute("mascotasUsuario", mascotas);
@@ -72,7 +73,112 @@ public class MascotaServlet extends HttpServlet {
     }
 
     /**
-     * Maneja las solicitudes POST de los formularios de mascota (registrar, actualizar).
+     * Maneja las solicitudes GET para mostrar el panel de mascotas, el formulario de nueva mascota,
+     * el formulario de edición de mascota o la confirmación de eliminación.
+     * @param request Objeto HttpServletRequest que contiene la solicitud del cliente.
+     * @param response Objeto HttpServletResponse que contiene la respuesta del servlet.
+     * @throws ServletException Si ocurre un error específico del servlet.
+     * @throws IOException Si ocurre un error de E/S.
+     */
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        Usuario usuarioActual = (Usuario) session.getAttribute("usuario");
+
+        if (usuarioActual == null) {
+            String contextPath = request.getContextPath();
+            response.sendRedirect(contextPath + "/login.jsp");
+            System.out.println("doGet: Usuario no logueado, redirigiendo a login.jsp");
+            return;
+        }
+
+        String action = request.getParameter("action");
+        System.out.println("MascotaServlet - doGet: Acción recibida = " + action);
+
+        try {
+            // Cargar mascotas para el panel principal o el selector de la calculadora
+            cargarMascotas(request, session, usuarioActual);
+
+            switch (action != null ? action : "") {
+                case "mostrarFormulario":
+                    request.setAttribute("isEditMode", false); // Explicitamente para modo "añadir"
+                    request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                    break;
+                case "editar":
+                    String idMascotaEditarStr = request.getParameter("idMascota");
+                    if (idMascotaEditarStr != null && !idMascotaEditarStr.isEmpty()) {
+                        try {
+                            int idMascota = Integer.parseInt(idMascotaEditarStr);
+                            Mascota mascotaExistente = mascotaDAO.obtenerMascotaPorId(idMascota);
+
+                            if (mascotaExistente != null && mascotaExistente.getIdUsuario() == usuarioActual.getIdUsuario()) {
+                                request.setAttribute("mascota", mascotaExistente); // Establece la mascota para precargar el formulario
+                                request.setAttribute("isEditMode", true); // Explicitamente para modo "editar"
+                                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                                System.out.println("doGet: Cargando formulario de edición para mascota ID: " + idMascota);
+                            } else {
+                                session.setAttribute("message", "Mascota no encontrada o no tienes permiso para editarla.");
+                                session.setAttribute("messageType", "danger");
+                                response.sendRedirect(request.getContextPath() + "/MascotaServlet"); // Redirige al panel
+                            }
+                        } catch (NumberFormatException e) {
+                            session.setAttribute("message", "ID de mascota inválido para editar.");
+                            session.setAttribute("messageType", "danger");
+                            response.sendRedirect(request.getContextPath() + "/MascotaServlet"); // Redirige al panel
+                        }
+                    } else {
+                        session.setAttribute("message", "ID de mascota no especificado para editar.");
+                        session.setAttribute("messageType", "warning");
+                        response.sendRedirect(request.getContextPath() + "/MascotaServlet"); // Redirige al panel
+                    }
+                    break;
+                case "eliminarConfirmar":
+                    // Lógica para mostrar la página de confirmación de eliminación (si aplica)
+                    String idMascotaConfirmarStr = request.getParameter("idMascota");
+                    if (idMascotaConfirmarStr != null && !idMascotaConfirmarStr.isEmpty()) {
+                        try {
+                            int idMascota = Integer.parseInt(idMascotaConfirmarStr);
+                            Mascota mascotaAEliminar = mascotaDAO.obtenerMascotaPorId(idMascota);
+                            if (mascotaAEliminar != null && mascotaAEliminar.getIdUsuario() == usuarioActual.getIdUsuario()) {
+                                request.setAttribute("mascotaAEliminar", mascotaAEliminar);
+                                request.getRequestDispatcher("/confirmarEliminarMascota.jsp").forward(request, response);
+                            } else {
+                                session.setAttribute("message", "Mascota no encontrada o no tienes permiso para eliminarla.");
+                                session.setAttribute("messageType", "danger");
+                                response.sendRedirect(request.getContextPath() + "/MascotaServlet");
+                            }
+                        } catch (NumberFormatException e) {
+                            session.setAttribute("message", "ID de mascota inválido para eliminar.");
+                            session.setAttribute("messageType", "danger");
+                            response.sendRedirect(request.getContextPath() + "/MascotaServlet");
+                        }
+                    } else {
+                        session.setAttribute("message", "ID de mascota no especificado para eliminar.");
+                        session.setAttribute("messageType", "warning");
+                        response.sendRedirect(request.getContextPath() + "/MascotaServlet");
+                    }
+                    break;
+                default:
+                    // Acción por defecto: mostrar el panel de mascotas
+                    request.getRequestDispatcher("/panel.jsp").forward(request, response);
+                    break;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            session.setAttribute("message", "Error de base de datos en MascotaServlet (GET): " + e.getMessage());
+            session.setAttribute("messageType", "danger");
+            response.sendRedirect(request.getContextPath() + "/MascotaServlet"); // Redirige al panel en caso de error
+            System.err.println("MascotaServlet - doGet: Error SQL: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("message", "Ocurrió un error inesperado en MascotaServlet (GET): " + e.getMessage());
+            session.setAttribute("messageType", "danger");
+            response.sendRedirect(request.getContextPath() + "/MascotaServlet"); // Redirige al panel en caso de error
+            System.err.println("MascotaServlet - doGet: Error inesperado: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Maneja las solicitudes POST de los formularios de mascota (registrar, actualizar, eliminar).
      * @param request Objeto HttpServletRequest que contiene la solicitud del cliente.
      * @param response Objeto HttpServletResponse que contiene la respuesta del servlet.
      * @throws ServletException Si ocurre un error específico del servlet.
@@ -111,64 +217,41 @@ public class MascotaServlet extends HttpServlet {
             }
 
             switch (action != null ? action : "") {
-                case "agregar":
-                    String nombre = request.getParameter("nombre");
-                    String sexo = request.getParameter("sexo");
-                    String fechaNacimientoStr = request.getParameter("fechaNacimiento");
-                    String raza = request.getParameter("raza");
-                    double pesoKg = 0.0;
-                    boolean esterilizado = "true".equalsIgnoreCase(request.getParameter("esterilizado"));
-                    String tipo = request.getParameter("tipo");
-                    String nivelActividad = request.getParameter("nivelActividad");
-                    String condicionSalud = request.getParameter("condicionSalud");
+                case "insertar":
+                    // Se construye la mascota directamente del request para validación y luego se usa para insertar
+                    Mascota nuevaMascota = buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null);
                     
-                    String imagenFileName = null; // Para almacenar el nombre del archivo de imagen
-
                     // Procesar la subida de la imagen
                     Part filePart = request.getPart("imagenFile"); // "imagenFile" es el 'name' del input type="file"
                     if (filePart != null && filePart.getSize() > 0) {
                         String fileName = getFileName(filePart);
                         if (fileName != null && !fileName.isEmpty()) {
                             // Generar un nombre único para el archivo
-                            imagenFileName = UUID.randomUUID().toString() + "_" + fileName;
+                            String imagenFileName = UUID.randomUUID().toString() + "_" + fileName;
                             filePart.write(uploadFilePath + File.separator + imagenFileName);
                             System.out.println("Archivo subido: " + imagenFileName + " a " + uploadFilePath);
+                            nuevaMascota.setImagen(imagenFileName); // Asignar el nombre de archivo a la mascota
                         }
                     }
 
-                    try {
-                        pesoKg = Double.parseDouble(request.getParameter("pesoKg"));
-                    } catch (NumberFormatException e) {
-                        message = "Error en el peso. Por favor, introduce un valor numérico válido.";
+                    // Validación de campos obligatorios para insertar
+                    if (nuevaMascota.getNombre() == null || nuevaMascota.getNombre().trim().isEmpty() ||
+                        nuevaMascota.getSexo() == null || nuevaMascota.getSexo().trim().isEmpty() ||
+                        nuevaMascota.getFechaNacimiento() == null ||
+                        nuevaMascota.getRaza() == null || nuevaMascota.getRaza().trim().isEmpty() ||
+                        nuevaMascota.getTipo() == null || nuevaMascota.getTipo().trim().isEmpty() ||
+                        nuevaMascota.getNivelActividad() == null || nuevaMascota.getNivelActividad().trim().isEmpty() ||
+                        nuevaMascota.getPeso() <= 0) { // Validar peso positivo
+                        
+                        message = "Todos los campos obligatorios (Nombre, Sexo, Fecha de Nacimiento, Raza, Peso, Tipo, Nivel de Actividad) deben ser rellenados y válidos.";
                         messageType = "danger";
-                        break;
+                        request.setAttribute("mascota", nuevaMascota); // Pasa la mascota con los datos del request para precargar
+                        request.setAttribute("isEditMode", false); // ¡Importante! Mantener el modo "añadir" en caso de error
+                        session.setAttribute("message", message);
+                        session.setAttribute("messageType", messageType);
+                        request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                        return;
                     }
-
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                    java.util.Date fechaNacimientoTemp = null;
-                    java.sql.Date fechaNacimientoSql = null;
-                    try {
-                        fechaNacimientoTemp = sdf.parse(fechaNacimientoStr);
-                        fechaNacimientoSql = new java.sql.Date(fechaNacimientoTemp.getTime());
-                    } catch (ParseException e) {
-                        message = "Formato de fecha de nacimiento inválido. Use AAAA-MM-DD.";
-                        messageType = "danger";
-                        break;
-                    }
-
-                    if (nombre == null || nombre.trim().isEmpty() ||
-                        sexo == null || sexo.trim().isEmpty() ||
-                        fechaNacimientoStr == null || fechaNacimientoStr.trim().isEmpty() ||
-                        raza == null || raza.trim().isEmpty() ||
-                        tipo == null || tipo.trim().isEmpty() ||
-                        nivelActividad == null || nivelActividad.trim().isEmpty() ||
-                        condicionSalud == null || condicionSalud.trim().isEmpty()) {
-                        message = "Todos los campos obligatorios (Nombre, Sexo, Fecha de Nacimiento, Raza, Tipo, Nivel de Actividad, Condición de Salud) deben ser rellenados.";
-                        messageType = "danger";
-                        break;
-                    }
-
-                    Mascota nuevaMascota = new Mascota(usuarioActual.getIdUsuario(), nombre, sexo, fechaNacimientoSql, raza, pesoKg, esterilizado, tipo, nivelActividad, condicionSalud, imagenFileName);
                     
                     if (mascotaDAO.insertarMascota(nuevaMascota)) {
                         operacionExitosa = true;
@@ -224,21 +307,54 @@ public class MascotaServlet extends HttpServlet {
                         Mascota mascotaAActualizar = mascotaDAO.obtenerMascotaPorId(idMascotaActualizar);
 
                         if (mascotaAActualizar != null && mascotaAActualizar.getIdUsuario() == usuarioActual.getIdUsuario()) {
-                            String nombreUpdate = request.getParameter("nombre");
-                            String sexoUpdate = request.getParameter("sexo");
-                            String fechaNacimientoUpdateStr = request.getParameter("fechaNacimiento");
-                            String razaUpdate = request.getParameter("raza");
-                            double pesoKgUpdate = 0.0;
-                            boolean esterilizadoUpdate = "true".equalsIgnoreCase(request.getParameter("esterilizado"));
-                            String tipoUpdate = request.getParameter("tipo");
-                            String nivelActividadUpdate = request.getParameter("nivelActividad");
-                            String condicionSaludUpdate = request.getParameter("condicionSalud");
-                            String currentImageFileName = request.getParameter("currentImage"); // Nombre de la imagen actual (campo oculto del JSP)
+                            // Reconstruir la mascota con los datos del formulario para la validación
+                            Mascota mascotaConNuevosDatos = buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), idMascotaActualizar);
 
-                            String newImageFileName = null; // Para la nueva imagen si se sube
+                            // Debugging: Print values to console
+                            System.out.println("--- Depuración Actualizar Mascota ---");
+                            System.out.println("ID Mascota: " + idMascotaActualizar);
+                            System.out.println("Nombre: " + mascotaConNuevosDatos.getNombre());
+                            System.out.println("Sexo: " + mascotaConNuevosDatos.getSexo());
+                            System.out.println("Fecha Nacimiento: " + mascotaConNuevosDatos.getFechaNacimiento());
+                            System.out.println("Raza: " + mascotaConNuevosDatos.getRaza());
+                            System.out.println("Peso: " + mascotaConNuevosDatos.getPeso());
+                            System.out.println("Esterilizado: " + mascotaConNuevosDatos.isEsterilizado());
+                            System.out.println("Tipo: " + mascotaConNuevosDatos.getTipo());
+                            System.out.println("Nivel Actividad: " + mascotaConNuevosDatos.getNivelActividad());
+                            System.out.println("Condición Salud: " + mascotaConNuevosDatos.getCondicionSalud());
+                            System.out.println("Color: " + mascotaConNuevosDatos.getColor());
+                            System.out.println("Chip ID: " + mascotaConNuevosDatos.getChipID());
+                            System.out.println("Observaciones: " + mascotaConNuevosDatos.getObservaciones());
+                            System.out.println("Objetivo Peso: " + mascotaConNuevosDatos.getObjetivoPeso());
+                            System.out.println("Estado Reproductor: " + mascotaConNuevosDatos.getEstadoReproductor());
+                            System.out.println("Num Cachorros: " + mascotaConNuevosDatos.getNumCachorros());
+                            System.out.println("Tipo Alimento Predeterminado: " + mascotaConNuevosDatos.getTipoAlimentoPredeterminado());
+                            System.out.println("Kcal por 100g: " + mascotaConNuevosDatos.getKcalPor100gAlimentoPredeterminado());
+                            System.out.println("------------------------------------");
 
-                            // Procesar la subida de la nueva imagen
+                            // Validación de campos obligatorios para actualizar
+                            if (mascotaConNuevosDatos.getNombre() == null || mascotaConNuevosDatos.getNombre().trim().isEmpty() ||
+                                mascotaConNuevosDatos.getSexo() == null || mascotaConNuevosDatos.getSexo().trim().isEmpty() ||
+                                mascotaConNuevosDatos.getFechaNacimiento() == null ||
+                                mascotaConNuevosDatos.getRaza() == null || mascotaConNuevosDatos.getRaza().trim().isEmpty() ||
+                                mascotaConNuevosDatos.getNivelActividad() == null || mascotaConNuevosDatos.getNivelActividad().trim().isEmpty() ||
+                                mascotaConNuevosDatos.getPeso() <= 0) { // Validar peso positivo
+                                
+                                message = "Todos los campos obligatorios (Nombre, Sexo, Fecha de Nacimiento, Raza, Peso, Nivel de Actividad) deben ser rellenados y válidos para actualizar.";
+                                messageType = "danger";
+                                request.setAttribute("mascota", mascotaConNuevosDatos); // Pasa los datos que el usuario intentó enviar
+                                request.setAttribute("isEditMode", true); // ¡Importante! Mantener el modo "editar" en caso de error
+                                session.setAttribute("message", message);
+                                session.setAttribute("messageType", messageType);
+                                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                                return;
+                            }
+
+                            // Procesar la subida de la nueva imagen si hay una
+                            String currentImageFileName = request.getParameter("imagenExistente"); // Nombre de la imagen actual
                             Part newFilePart = request.getPart("imagenFile");
+                            String newImageFileName = currentImageFileName; // Por defecto, se mantiene la imagen existente
+
                             if (newFilePart != null && newFilePart.getSize() > 0) {
                                 String fileName = getFileName(newFilePart);
                                 if (fileName != null && !fileName.isEmpty()) {
@@ -246,7 +362,7 @@ public class MascotaServlet extends HttpServlet {
                                     newFilePart.write(uploadFilePath + File.separator + newImageFileName);
                                     System.out.println("Nueva imagen subida: " + newImageFileName);
 
-                                    // Eliminar la imagen antigua si existe y es diferente a la nueva
+                                    // Si hay una nueva imagen, eliminar la antigua si existe y es diferente
                                     if (currentImageFileName != null && !currentImageFileName.isEmpty() && !currentImageFileName.equals(newImageFileName)) {
                                         File oldImageFile = new File(uploadFilePath + File.separator + currentImageFileName);
                                         if (oldImageFile.exists()) {
@@ -258,65 +374,29 @@ public class MascotaServlet extends HttpServlet {
                                         }
                                     }
                                 }
-                            } else {
-                                // Si no se subió un nuevo archivo, mantener el nombre de la imagen actual
-                                newImageFileName = currentImageFileName;
                             }
+                            mascotaConNuevosDatos.setImagen(newImageFileName);
 
-                            try {
-                                pesoKgUpdate = Double.parseDouble(request.getParameter("pesoKg"));
-                            } catch (NumberFormatException e) {
-                                message = "Error en el peso para actualizar. Por favor, introduce un valor numérico válido.";
-                                messageType = "danger";
-                                request.setAttribute("mascota", mascotaAActualizar);
-                                session.setAttribute("message", message); // Usar sesión para el mensaje
-                                session.setAttribute("messageType", messageType);
-                                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                                return;
-                            }
 
-                            SimpleDateFormat sdfUpdate = new SimpleDateFormat("yyyy-MM-dd");
-                            java.util.Date fechaNacimientoUpdateTemp = null;
-                            java.sql.Date fechaNacimientoUpdateSql = null;
-                            try {
-                                fechaNacimientoUpdateTemp = sdfUpdate.parse(fechaNacimientoUpdateStr);
-                                fechaNacimientoUpdateSql = new java.sql.Date(fechaNacimientoUpdateTemp.getTime());
-                            } catch (ParseException e) {
-                                message = "Formato de fecha de nacimiento inválido para actualizar. Use AAAA-MM-DD.";
-                                messageType = "danger";
-                                request.setAttribute("mascota", mascotaAActualizar);
-                                session.setAttribute("message", message); // Usar sesión para el mensaje
-                                session.setAttribute("messageType", messageType);
-                                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                                return;
-                            }
-
-                            if (nombreUpdate == null || nombreUpdate.trim().isEmpty() ||
-                                sexoUpdate == null || sexoUpdate.trim().isEmpty() ||
-                                fechaNacimientoUpdateStr == null || fechaNacimientoUpdateStr.trim().isEmpty() ||
-                                razaUpdate == null || razaUpdate.trim().isEmpty() ||
-                                tipoUpdate == null || tipoUpdate.trim().isEmpty() ||
-                                nivelActividadUpdate == null || nivelActividadUpdate.trim().isEmpty() ||
-                                condicionSaludUpdate == null || condicionSaludUpdate.trim().isEmpty()) {
-                                message = "Todos los campos obligatorios deben ser rellenados para actualizar.";
-                                messageType = "danger";
-                                request.setAttribute("mascota", mascotaAActualizar);
-                                session.setAttribute("message", message); // Usar sesión para el mensaje
-                                session.setAttribute("messageType", messageType);
-                                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                                return;
-                            }
-
-                            mascotaAActualizar.setNombre(nombreUpdate);
-                            mascotaAActualizar.setSexo(sexoUpdate);
-                            mascotaAActualizar.setFechaNacimiento(fechaNacimientoUpdateSql);
-                            mascotaAActualizar.setRaza(razaUpdate);
-                            mascotaAActualizar.setPesoKg(pesoKgUpdate);
-                            mascotaAActualizar.setEsterilizado(esterilizadoUpdate);
-                            mascotaAActualizar.setTipo(tipoUpdate);
-                            mascotaAActualizar.setNivelActividad(nivelActividadUpdate);
-                            mascotaAActualizar.setCondicionSalud(condicionSaludUpdate);
-                            mascotaAActualizar.setImagen(newImageFileName); // Establecer el nombre de la nueva imagen o la existente
+                            // Actualizar el objeto mascotaAActualizar con los datos validados del formulario
+                            mascotaAActualizar.setNombre(mascotaConNuevosDatos.getNombre());
+                            mascotaAActualizar.setSexo(mascotaConNuevosDatos.getSexo());
+                            mascotaAActualizar.setFechaNacimiento(mascotaConNuevosDatos.getFechaNacimiento());
+                            mascotaAActualizar.setRaza(mascotaConNuevosDatos.getRaza());
+                            mascotaAActualizar.setPeso(mascotaConNuevosDatos.getPeso());
+                            mascotaAActualizar.setEsterilizado(mascotaConNuevosDatos.isEsterilizado());
+                            mascotaAActualizar.setTipo(mascotaConNuevosDatos.getTipo());
+                            mascotaAActualizar.setNivelActividad(mascotaConNuevosDatos.getNivelActividad());
+                            mascotaAActualizar.setCondicionSalud(mascotaConNuevosDatos.getCondicionSalud());
+                            mascotaAActualizar.setImagen(mascotaConNuevosDatos.getImagen());
+                            mascotaAActualizar.setColor(mascotaConNuevosDatos.getColor());
+                            mascotaAActualizar.setChipID(mascotaConNuevosDatos.getChipID());
+                            mascotaAActualizar.setObservaciones(mascotaConNuevosDatos.getObservaciones());
+                            mascotaAActualizar.setObjetivoPeso(mascotaConNuevosDatos.getObjetivoPeso());
+                            mascotaAActualizar.setEstadoReproductor(mascotaConNuevosDatos.getEstadoReproductor());
+                            mascotaAActualizar.setNumCachorros(mascotaConNuevosDatos.getNumCachorros());
+                            mascotaAActualizar.setTipoAlimentoPredeterminado(mascotaConNuevosDatos.getTipoAlimentoPredeterminado());
+                            mascotaAActualizar.setKcalPor100gAlimentoPredeterminado(mascotaConNuevosDatos.getKcalPor100gAlimentoPredeterminado());
 
                             if (mascotaDAO.actualizarMascota(mascotaAActualizar)) {
                                 operacionExitosa = true;
@@ -343,7 +423,7 @@ public class MascotaServlet extends HttpServlet {
             }
 
             if (operacionExitosa) {
-                session.removeAttribute("mascotasUsuario"); // Forzar recarga de la lista de mascotas
+                session.removeAttribute("mascotasUsuario"); // Forzar recarga de la lista de mascotas en la sesión
             }
             
             session.setAttribute("message", message);
@@ -352,22 +432,48 @@ public class MascotaServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/MascotaServlet");
             return;
 
+        } catch (SQLIntegrityConstraintViolationException e) {
+            // Captura específica para errores de duplicidad (como chipID)
+            e.printStackTrace();
+            String errorMessage = "Error: ";
+            if (e.getMessage().contains("chipID")) {
+                errorMessage += "El número de chip ya está registrado para otra mascota. Por favor, introduce uno diferente.";
+            } else {
+                errorMessage += "Se ha producido un error de duplicidad de datos. Por favor, revisa los campos únicos.";
+            }
+            session.setAttribute("message", errorMessage);
+            session.setAttribute("messageType", "danger");
+            // Si hay un error de DB, intentar precargar el formulario con los datos que el usuario envió
+            if ("insertar".equals(action)) {
+                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null));
+                request.setAttribute("isEditMode", false); // Mantener en modo "añadir"
+                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                return;
+            } else if ("actualizar".equals(action)) {
+                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), Integer.parseInt(request.getParameter("idMascota"))));
+                request.setAttribute("isEditMode", true); // Mantener en modo "editar"
+                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                return;
+            } else {
+                response.sendRedirect(request.getContextPath() + "/MascotaServlet");
+                return;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             session.setAttribute("message", "Error de base de datos en MascotaServlet (POST): " + e.getMessage());
             session.setAttribute("messageType", "danger");
-            try {
-                if ("agregar".equals(action) || "actualizar".equals(action)) {
-                    // Si hubo un error en agregar/actualizar, redirigir al formulario con los datos pre-rellenados
-                    // (el request.setAttribute ya se hizo en los bloques de error específicos)
-                    request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                    return;
-                } else {
-                    response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-                    return;
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            // Si hay un error de DB, intentar precargar el formulario con los datos que el usuario envió
+            if ("insertar".equals(action)) {
+                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null));
+                request.setAttribute("isEditMode", false); // Mantener en modo "añadir"
+                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                return;
+            } else if ("actualizar".equals(action)) {
+                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), Integer.parseInt(request.getParameter("idMascota"))));
+                request.setAttribute("isEditMode", true); // Mantener en modo "editar"
+                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                return;
+            } else {
                 response.sendRedirect(request.getContextPath() + "/MascotaServlet");
                 return;
             }
@@ -375,16 +481,18 @@ public class MascotaServlet extends HttpServlet {
             e.printStackTrace();
             session.setAttribute("message", "Ocurrió un error inesperado en MascotaServlet (POST): " + e.getMessage());
             session.setAttribute("messageType", "danger");
-            try {
-                if ("agregar".equals(action) || "actualizar".equals(action)) {
-                    request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                    return;
-                } else {
-                    response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-                    return;
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            // Si hay un error inesperado, intentar precargar el formulario con los datos que el usuario envió
+            if ("insertar".equals(action)) {
+                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null));
+                request.setAttribute("isEditMode", false); // Mantener en modo "añadir"
+                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                return;
+            } else if ("actualizar".equals(action)) {
+                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), Integer.parseInt(request.getParameter("idMascota"))));
+                request.setAttribute("isEditMode", true); // Mantener en modo "editar"
+                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+                return;
+            } else {
                 response.sendRedirect(request.getContextPath() + "/MascotaServlet");
                 return;
             }
@@ -392,8 +500,99 @@ public class MascotaServlet extends HttpServlet {
     }
 
     /**
-     * Método auxiliar para extraer el nombre del archivo de la cabecera Content-Disposition.
-     * @param part El objeto Part que representa el archivo subido.
+     * Método auxiliar para construir un objeto Mascota a partir de los parámetros del request.
+     * Útil para precargar el formulario en caso de errores de validación.
+     * Ya no lanza ParseException, la maneja internamente.
+     */
+    private Mascota buildMascotaFromRequest(HttpServletRequest request, int idUsuario, Integer idMascota) {
+        Mascota mascota = new Mascota();
+        if (idMascota != null) {
+            mascota.setIdMascota(idMascota);
+        }
+        mascota.setIdUsuario(idUsuario);
+        mascota.setNombre(request.getParameter("nombre"));
+        mascota.setSexo(request.getParameter("sexo"));
+        
+        String fechaNacimientoStr = request.getParameter("fechaNacimiento");
+        if (fechaNacimientoStr != null && !fechaNacimientoStr.trim().isEmpty()) {
+            try {
+                mascota.setFechaNacimiento(new SimpleDateFormat("yyyy-MM-dd").parse(fechaNacimientoStr));
+            } catch (ParseException e) {
+                System.err.println("Error al parsear la fecha de nacimiento: " + fechaNacimientoStr + ". Estableciendo a null. " + e.getMessage());
+                mascota.setFechaNacimiento(null); // Establecer a null si hay un error de parseo
+            }
+        } else {
+            mascota.setFechaNacimiento(null);
+        }
+
+        mascota.setRaza(request.getParameter("raza"));
+        
+        String pesoStr = request.getParameter("peso");
+        if (pesoStr != null && !pesoStr.trim().isEmpty()) {
+            try {
+                // Handle comma as decimal separator for locales
+                String cleanedPesoStr = pesoStr.replace(',', '.');
+                mascota.setPeso(Double.parseDouble(cleanedPesoStr));
+            } catch (NumberFormatException e) {
+                System.err.println("Error al parsear el peso: " + pesoStr + ". Estableciendo a 0.0. " + e.getMessage());
+                mascota.setPeso(0.0); // Default to 0.0 if there's a parsing error
+            }
+        } else {
+            mascota.setPeso(0.0); // Default to 0.0 if empty
+        }
+
+        // Add parsing for boolean esterilizado
+        mascota.setEsterilizado("true".equalsIgnoreCase(request.getParameter("esterilizado")));
+
+        // Add parsing for existing fields
+        mascota.setTipo(request.getParameter("tipo"));
+        mascota.setNivelActividad(request.getParameter("nivelActividad"));
+        mascota.setCondicionSalud(request.getParameter("condicionSalud"));
+
+        // Modificación clave: Si chipID es vacío, establecerlo a null
+        String chipIDParam = request.getParameter("chipID");
+        mascota.setChipID(chipIDParam != null && !chipIDParam.trim().isEmpty() ? chipIDParam.trim() : null);
+
+        mascota.setColor(request.getParameter("color"));
+        mascota.setObservaciones(request.getParameter("observaciones"));
+        mascota.setObjetivoPeso(request.getParameter("objetivoPeso"));
+        mascota.setEstadoReproductor(request.getParameter("estadoReproductor"));
+        
+        String numCachorrosStr = request.getParameter("numCachorros");
+        if (numCachorrosStr != null && !numCachorrosStr.trim().isEmpty()) {
+            try {
+                mascota.setNumCachorros(Integer.parseInt(numCachorrosStr));
+            } catch (NumberFormatException e) {
+                System.err.println("Error al parsear el número de cachorros: " + numCachorrosStr + ". Estableciendo a null. " + e.getMessage());
+                mascota.setNumCachorros(null);
+            }
+        } else {
+            mascota.setNumCachorros(null);
+        }
+
+        mascota.setTipoAlimentoPredeterminado(request.getParameter("tipoAlimentoPredeterminado"));
+        
+        String kcalStr = request.getParameter("kcalPor100gAlimentoPredeterminado");
+        if (kcalStr != null && !kcalStr.trim().isEmpty()) {
+            try {
+                mascota.setKcalPor100gAlimentoPredeterminado(Double.parseDouble(kcalStr.replace(',', '.')));
+            } catch (NumberFormatException e) {
+                System.err.println("Error al parsear kcalPor100gAlimentoPredeterminado: " + kcalStr + ". Estableciendo a null. " + e.getMessage());
+                mascota.setKcalPor100gAlimentoPredeterminado(null);
+            }
+        } else {
+            mascota.setKcalPor100gAlimentoPredeterminado(null);
+        }
+
+        // La imagen se maneja por separado en doPost
+        // mascota.setImagen(request.getParameter("imagen")); // No se obtiene aquí directamente del request
+
+        return mascota;
+    }
+
+    /**
+     * Método auxiliar para obtener el nombre del archivo de una parte (Part).
+     * @param part La parte del archivo.
      * @return El nombre del archivo.
      */
     private String getFileName(Part part) {
@@ -403,98 +602,5 @@ public class MascotaServlet extends HttpServlet {
             }
         }
         return null;
-    }
-
-    /**
-     * Maneja las solicitudes GET (mostrar formulario de registro/edición, listar mascotas, eliminar).
-     * @param request Objeto HttpServletRequest que contiene la solicitud del cliente.
-     * @param response Objeto HttpServletResponse que contiene la respuesta del servlet.
-     * @throws ServletException Si ocurre un error específico del servlet.
-     * @throws IOException Si ocurre un error de E/S.
-     */
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        Usuario usuarioActual = (Usuario) session.getAttribute("usuario");
-
-        if (usuarioActual == null) {
-            String contextPath = request.getContextPath();
-            response.sendRedirect(contextPath + "/login.jsp");
-            System.out.println("doGet: Usuario no logueado, redirigiendo a login.jsp");
-            return;
-        }
-
-        String action = request.getParameter("action");
-        System.out.println("MascotaServlet - doGet: Acción recibida = " + action + ", Usuario ID: " + usuarioActual.getIdUsuario());
-
-        try {
-            if ("mostrarFormulario".equals(action)) {
-                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-            } else if ("editar".equals(action)) {
-                String idMascotaStr = request.getParameter("idMascota");
-                if (idMascotaStr != null && !idMascotaStr.isEmpty()) {
-                    int idMascota = Integer.parseInt(idMascotaStr);
-                    Mascota mascotaEditar = this.mascotaDAO.obtenerMascotaPorId(idMascota);
-
-                    if (mascotaEditar != null && mascotaEditar.getIdUsuario() == usuarioActual.getIdUsuario()) {
-                        request.setAttribute("mascota", mascotaEditar);
-                        request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                    } else {
-                        session.setAttribute("message", "Mascota no encontrada o no tienes permiso para editarla.");
-                        session.setAttribute("messageType", "danger");
-                        response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-                    }
-                } else {
-                    session.setAttribute("message", "ID de mascota no especificado para editar.");
-                    session.setAttribute("messageType", "warning");
-                    response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-                }
-            } else if ("eliminar".equals(action)) {
-                // La eliminación se maneja por POST para seguridad y idempotencia
-                session.setAttribute("message", "La eliminación de mascotas debe realizarse mediante una solicitud POST.");
-                session.setAttribute("messageType", "warning");
-                response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-            } else if ("mostrarFormularioDosis".equals(action)) {
-                String idMascotaStr = request.getParameter("idMascota");
-                if (idMascotaStr != null && !idMascotaStr.trim().isEmpty()) {
-                    int idMascota = Integer.parseInt(idMascotaStr);
-                    Mascota mascotaSeleccionada = this.mascotaDAO.obtenerMascotaPorId(idMascota);
-
-                    if (mascotaSeleccionada != null && mascotaSeleccionada.getIdUsuario() == usuarioActual.getIdUsuario()) {
-                        response.sendRedirect(request.getContextPath() + "/dosis?action=list&idMascota=" + idMascota);
-                        return;
-                    } else {
-                        session.setAttribute("message", "Mascota no encontrada o no tienes permiso para ver sus dosis.");
-                        session.setAttribute("messageType", "danger");
-                        response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-                    }
-                } else {
-                    session.setAttribute("message", "ID de mascota no especificado para mostrar el formulario de dosis.");
-                    session.setAttribute("messageType", "warning");
-                    response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-                }
-            }
-            else {
-                cargarMascotas(request, session, usuarioActual);
-                System.out.println("MascotaServlet - doGet: Preparando panel.jsp para usuario ID: " + usuarioActual.getIdUsuario());
-                request.getRequestDispatcher("/panel.jsp").forward(request, response);
-            }
-        } catch (NumberFormatException e) {
-            session.setAttribute("message", "ID inválido en la URL.");
-            session.setAttribute("messageType", "danger");
-            response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            session.setAttribute("message", "Error de base de datos: " + e.getMessage());
-            session.setAttribute("messageType", "danger");
-            request.setAttribute("listaMascotas", new ArrayList<Mascota>());
-            request.getRequestDispatcher("/panel.jsp").forward(request, response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            session.setAttribute("message", "Ocurrió un error inesperado: " + e.getMessage());
-            session.setAttribute("messageType", "danger");
-            request.setAttribute("listaMascotas", new ArrayList<Mascota>());
-            request.getRequestDispatcher("/panel.jsp").forward(request, response);
-        }
     }
 }
