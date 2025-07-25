@@ -2,8 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* ==========================================================================
-   Estilos Generales
-   ========================================================================== */
+    Estilos Generales
+    ========================================================================== */
 html, body {
     height: 100%; /* Asegura que html y body ocupen toda la altura de la ventana */
     margin: 0;
@@ -13,11 +13,11 @@ html, body {
 
 body {
     font-family: 'Inter', sans-serif; /* Usar Inter como fuente principal */
-    background-color: #F9EEDD; /* Color de fondo exacto de la imagen (el beige claro) */
     color: #333; /* Color de texto general */
     display: flex; /* Habilitar flexbox para el body */
     flex-direction: column; /* Apilar los elementos verticalmente (top-bar, main-content) */
     box-sizing: border-box;
+    transition: background-color 0.5s ease; /* Transición suave para el cambio de tema */
 }
 
 /* Clase para evitar el scroll del body cuando el sidebar está abierto */
@@ -26,8 +26,111 @@ body.no-scroll {
 }
 
 /* ==========================================================================
-   Nueva Barra Superior (Top Bar)
-   ========================================================================== */
+    TEMAS DE MASCOTA (Perro y Gato) - APLICADOS AL BODY
+    ========================================================================== */
+
+/* Tema por defecto / Perro */
+body.dog-theme {
+    background-color: #F9EEDD; /* Color de fondo exacto de la imagen (el beige claro) */
+}
+
+body.dog-theme .app-header {
+    background: linear-gradient(to right, #00796b, #004d40); /* Dark teal gradient */
+}
+
+body.dog-theme .form-card h2,
+body.dog-theme .form-card h4,
+body.dog-theme .result-section h2,
+body.dog-theme .result-section strong {
+    color: #00796b; /* Accent color for dog theme */
+}
+
+body.dog-theme .form-control:focus,
+body.dog-theme .form-select:focus {
+    border-color: #00796b;
+    box-shadow: 0 0 0 0.25rem rgba(0, 121, 107, 0.25);
+}
+
+body.dog-theme .form-check-input[type="radio"]:checked {
+    background-color: #00796b;
+    border-color: #00796b;
+}
+
+body.dog-theme .btn-primary {
+    background-color: #00796b;
+    border-color: #00796b;
+    box-shadow: 0 4px 8px rgba(0, 121, 107, 0.3);
+    color: #fff; /* Asegurar texto blanco en botón primario del tema perro */
+}
+
+body.dog-theme .btn-primary:hover {
+    background-color: #004d40;
+    border-color: #004d40;
+    box-shadow: 0 6px 12px rgba(0, 121, 107, 0.4);
+}
+
+body.dog-theme .result-section {
+    background-color: #e0f2f7; /* Lighter blue for results in dog theme */
+    border: 1px solid #b2ebf2;
+}
+
+body.dog-theme .result-section h2 {
+    border-bottom-color: #b2ebf2; /* Borde inferior dinámico por tema */
+}
+
+/* Tema Gato */
+body.cat-theme {
+    background-color: #FFF3E0; /* Un color más cálido para gatos */
+}
+
+body.cat-theme .app-header {
+    background: linear-gradient(to right, #ff8f00, #e65100); /* Darker orange gradient */
+}
+
+body.cat-theme .form-card h2,
+body.cat-theme .form-card h4,
+body.cat-theme .result-section h2,
+body.cat-theme .result-section strong {
+    color: #ff8f00; /* Accent color for cat theme */
+}
+
+body.cat-theme .form-control:focus,
+body.cat-theme .form-select:focus {
+    border-color: #ff8f00;
+    box-shadow: 0 0 0 0.25rem rgba(255, 143, 0, 0.25);
+}
+
+body.cat-theme .form-check-input[type="radio"]:checked {
+    background-color: #ff8f00;
+    border-color: #ff8f00;
+}
+
+body.cat-theme .btn-primary {
+    background-color: #ff8f00;
+    border-color: #ff8f00;
+    box-shadow: 0 4px 8px rgba(255, 143, 0, 0.3);
+    color: #fff; /* Asegurar texto blanco en botón primario del tema gato */
+}
+
+body.cat-theme .btn-primary:hover {
+    background-color: #e65100;
+    border-color: #e65100;
+    box-shadow: 0 6px 12px rgba(255, 143, 0, 0.4);
+}
+
+body.cat-theme .result-section {
+    background-color: #fff8e1; /* Lighter orange for results in cat theme */
+    border: 1px solid #ffe0b2;
+}
+
+body.cat-theme .result-section h2 {
+    border-bottom-color: #ffe0b2; /* Borde inferior dinámico por tema */
+}
+
+
+/* ==========================================================================
+    Nueva Barra Superior (Top Bar) - Estilos Comunes
+    ========================================================================== */
 .top-bar {
     background-color: #6a82fb; /* Color de la barra superior */
     color: white;
@@ -79,8 +182,55 @@ body.no-scroll {
 }
 
 /* ==========================================================================
-   Contenedores Principales (Tarjetas)
-   ========================================================================== */
+    Encabezado de la Calculadora (App Header) - Estilos Comunes
+    ========================================================================== */
+.app-header {
+    color: #fff;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+    margin-bottom: 3rem;
+    transition: background 0.5s ease; /* Transición suave para el cambio de tema */
+}
+
+.app-header h1 {
+    font-size: 2.8rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.app-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* Icono de mascota en el encabezado (renombrado de .dog-icon) */
+.pet-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    animation: bounce 2s infinite; /* Subtle bounce animation */
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+
+/* ==========================================================================
+    Contenedores Principales (Tarjetas) - Estilos Comunes
+    ========================================================================== */
 /* Estas clases se aplican a contenedores generales, NO a .panel-container ni .mascota-card-panel */
 .container, .registration-container, .form-card {
     background-color: #ffffff; /* Mantener blanco para otros contenedores que no son el panel */
@@ -138,8 +288,8 @@ body.no-scroll {
 }
 
 /* ==========================================================================
-   Elementos de Formulario
-   ========================================================================== */
+    Elementos de Formulario - Estilos Comunes
+    ========================================================================== */
 /* Estilos para los campos de entrada de login */
 .login-container input[type="email"],
 .login-container input[type="password"] {
@@ -222,10 +372,9 @@ select,
     color: #333;
 }
 
-/* Estilos de enfoque para formularios generales (no login) */
+/* Estilos de enfoque para formularios generales (NO login, ahora usan tema dinámico) */
 .form-control:focus, .form-select:focus, input[type="number"]:focus, input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus {
-    border-color: #FFC107;
-    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+    /* Estos estilos serán sobrescritos por .dog-theme o .cat-theme */
     outline: none;
 }
 
@@ -242,10 +391,7 @@ input[type="radio"] {
     border: 2px solid #ccc;
     width: 1.25em;
     height: 1.25em;
-}
-.form-check-input[type="radio"]:checked {
-    background-color: #FFC107;
-    border-color: #FFC107;
+    /* Color de marcado ahora dinámico por tema */
 }
 
 /* Ajuste para checkbox */
@@ -331,8 +477,8 @@ input[type="checkbox"] {
 
 
 /* ==========================================================================
-   Botones
-   ========================================================================== */
+    Botones - Estilos Comunes
+    ========================================================================== */
 /* Estilos base para todos los botones */
 .btn {
     border-radius: 10px;
@@ -358,16 +504,7 @@ input[type="checkbox"] {
 }
 
 /* Estilos específicos para botones */
-.btn-primary {
-    background-color: #FFC107;
-    border-color: #FFC107;
-    color: #333;
-}
-.btn-primary:hover {
-    background-color: #e0a800;
-    border-color: #e0a800;
-}
-
+/* .btn-primary ahora es dinámico por tema */
 .btn-secondary {
     background-color: #6c757d;
     border-color: #6c757d;
@@ -427,8 +564,8 @@ input[type="checkbox"] {
 }
 
 /* ==========================================================================
-   Mensajes y Resultados
-   ========================================================================== */
+    Mensajes y Resultados - Estilos Comunes
+    ========================================================================== */
 /* Estilos para mensajes de alerta (Bootstrap-like) */
 .alert {
     padding: 1rem 1.5rem;
@@ -476,23 +613,33 @@ input[type="checkbox"] {
     border: 1px solid #ebccd1;
 }
 
-/* Estilos para los resultados de cálculos */
+/* Estilos para los resultados de cálculos (ahora dinámico por tema) */
 .result, .result-section {
     margin-top: 25px;
-    padding: 20px;
-    background-color: #e9f7ef;
-    border: 1px solid #d4edda;
-    border-radius: 10px;
-    color: #155724;
+    padding: 2.5rem; /* Aumentado padding para consistencia */
+    border-radius: 15px; /* Aumentado border-radius */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+    color: #155724; /* Color de texto general para resultados */
     font-size: 1.1rem;
     font-weight: 500;
     text-align: left;
+    max-width: 800px; /* Ancho máximo para la sección de resultados */
+    width: 100%;
+    margin-left: auto; /* Centrar */
+    margin-right: auto; /* Centrar */
 }
 
-.result p, .result-section p {
-    margin: 5px 0;
+.result-section h2 {
+    font-weight: 600;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid; /* Borde inferior dinámico por tema */
+    padding-bottom: 1rem;
 }
-.results-section {
+
+.result-section p {
+    margin: 0.8rem 0; /* Ajustado margen */
+}
+.results-section { /* Este parece ser un duplicado de .result-section, mantener por si acaso */
     margin-top: 30px;
     padding: 20px;
     background-color: #e6ffe6;
@@ -515,8 +662,8 @@ input[type="checkbox"] {
     margin-top: 0.25rem;
 }
 /* ==========================================================================
-   Títulos y Encabezados
-   ========================================================================== */
+    Títulos y Encabezados - Estilos Comunes
+    ========================================================================== */
 h1 {
     color: #333;
     margin-bottom: 25px;
@@ -529,20 +676,14 @@ h1 {
     font-weight: 700;
     text-align: center;
 }
-/* Estilo específico para los h1 de la calculadora de comida */
-.container h1 {
-    color: #5cb85c;
-    margin-bottom: 25px;
-}
-/* Estilo específico para los h2 de resultados de la calculadora */
-.results-section h2 {
-    color: #5cb85c;
-    margin-top: 0;
-}
+/* Estilo específico para los h1 de la calculadora de comida (ahora dinámico por tema) */
+/* .container h1 { color: #5cb85c; margin-bottom: 25px; } */ /* Removido, ahora .app-header h1 es más general */
+/* Estilo específico para los h2 de resultados de la calculadora (ahora dinámico por tema) */
+/* .results-section h2 { color: #5cb85c; margin-top: 0; } */ /* Removido, ahora .result-section h2 es más general */
 
 /* ==========================================================================
-   Secciones Específicas
-   ========================================================================== */
+    Secciones Específicas - Estilos Comunes
+    ========================================================================== */
 /* Estilos para las secciones de la calculadora */
 .calculator-section {
     background-color: #f9f9f9;
@@ -568,31 +709,40 @@ h1 {
     align-items: center; /* Centrar horizontalmente el contenido de main-content */
 }
 
+/* Estilo para la tarjeta de bienvenida */
+/* CONSOLIDADO: Se eliminan duplicados y se usa la clase pet-illustration */
 .welcome-card {
-    background-color: #D6F5D6;
+    background-color: #e0f2f7; /* Un azul muy claro */
+    color: #2196f3; /* Texto azul */
+    padding: 15px 25px;
     border-radius: 15px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #333;
-    max-width: 700px;
+    justify-content: center; /* Centrar contenido */
+    gap: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(173, 216, 230, 0.5);
+    max-width: 700px; /* Mantener max-width para la tarjeta de bienvenida */
     margin-left: auto;
     margin-right: auto;
 }
 
-.welcome-card .dog-illustration {
-    width: 60px;
-    height: 60px;
+/* CAMBIO: Renombrado de .dog-illustration a .pet-illustration */
+.pet-illustration {
+    font-size: 2.5rem;
+    width: 60px; /* Asegurar tamaño fijo */
+    height: 60px; /* Asegurar tamaño fijo */
+    display: flex; /* Usar flex para centrar el emoji dentro del span */
+    align-items: center;
+    justify-content: center;
     margin-right: 1rem;
     background-color: transparent;
-    display: inline-block;
     vertical-align: middle;
 }
+
 
 /* Estilos para la tarjeta de mascota en el panel */
 .mascota-card-panel {
@@ -624,7 +774,7 @@ h1 {
     height: 120px;
     object-fit: cover;
     border-radius: 50%;
-    border: 3px solid #FFC107;
+    border: 3px solid #FFC107; /* Color de borde de imagen ahora dinámico por tema */
     margin-bottom: 15px;
 }
 .mascota-card-panel .card-title {
@@ -638,17 +788,15 @@ h1 {
     font-size: 1rem;
     margin-bottom: 5px;
 }
+/* Botones dentro de mascota-card-panel (ahora dinámicos por tema) */
 .mascota-card-panel .btn-edit-mascota {
     margin-top: 15px;
     width: 100%;
-    background-color: #FFC107;
-    border-color: #FFC107;
-    color: #333;
+    /* background-color y border-color ahora dinámicos por tema */
+    color: #333; /* Color de texto para este botón específico */
 }
-.mascota-card-panel .btn-edit-mascota:hover {
-    background-color: #e0a800;
-    border-color: #e0a800;
-}
+/* .mascota-card-panel .btn-edit-mascota:hover { } */ /* Ahora manejado por .btn-primary:hover */
+
 .mascota-card-panel .btn-danger {
     margin-top: 10px;
     width: 100%;
@@ -717,28 +865,7 @@ h1 {
     margin-bottom: 50px;
 }
 
-/* Estilo para la tarjeta de bienvenida */
-/* NOTA: Este estilo está duplicado en la sección de "Estilos de la página de bienvenida"
-   y en la sección "Secciones Específicas". Se mantiene la versión más general aquí. */
-.welcome-card {
-    background-color: #e0f2f7; /* Un azul muy claro */
-    color: #2196f3; /* Texto azul */
-    padding: 15px 25px;
-    border-radius: 15px;
-    margin-bottom: 30px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(173, 216, 230, 0.5);
-}
-.dog-illustration {
-    font-size: 2.5rem;
-}
-
-/* Estilos para la tarjeta del formulario (form-card) */
+/* Estilo para la tarjeta del formulario (form-card) */
 /* NOTA: Este estilo también está duplicado. Se mantiene la versión más específica aquí. */
 .form-card {
     background-color: #ffffff;
@@ -777,8 +904,8 @@ h1 {
 }
 
 /* ==========================================================================
-   Estilos de la página de bienvenida
-   ========================================================================== */
+    Estilos de la página de bienvenida - Estilos Comunes
+    ========================================================================= */
 /* Estilos específicos para la página de bienvenida */
 .welcome-page-container {
     display: flex;
@@ -846,8 +973,8 @@ h1 {
 }
 
 /* ==========================================================================
-   Estilos del Sidebar y Contenido Principal
-   ========================================================================== */
+    Estilos del Sidebar y Contenido Principal - Estilos Comunes
+    ========================================================================== */
 .sidebar {
     position: fixed; /* Sidebar flotante */
     top: 0; /* Alineado con la parte superior de la ventana */
@@ -936,8 +1063,8 @@ h1 {
 
 
 /* ==========================================================================
-   Estilos Responsivos
-   ========================================================================== */
+    Estilos Responsivos - Estilos Comunes
+    ========================================================================== */
 @media (max-width: 768px) {
     /* Ajustes para el body en móviles */
     body {
@@ -972,7 +1099,7 @@ h1 {
     .app-header p {
         font-size: 0.9rem;
     }
-    .app-header .dog-icon {
+    .pet-icon { /* Usar .pet-icon */
         font-size: 2.5rem;
     }
 
@@ -1001,90 +1128,5 @@ h1 {
     .radio-group {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
-    }
-    .form-check-inline {
-        margin-bottom: 5px;
-    }
-
-    .welcome-message {
-        font-size: 1.3rem;
-    }
-
-    /* Sidebar responsivo para móviles */
-    /* En móvil, el sidebar sigue siendo fijo y flotante */
-    .sidebar {
-        width: 250px; /* Ancho fijo para el sidebar en móvil */
-        border-radius: 0 15px 15px 0; /* Bordes redondeados solo a la derecha */
-        padding: 1.5rem;
-        position: fixed; /* Sigue siendo fixed */
-        left: -250px; /* Oculto por defecto */
-        top: 0;
-        height: 100%;
-        padding-top: calc(1rem + 60px); /* Ajustar padding superior para que no se superponga con la top-bar */
-    }
-
-    .sidebar.active {
-        transform: translateX(250px); /* Mostrar sidebar */
-    }
-
-    .sidebar-nav {
-        display: block; /* Volver a apilar los elementos del menú verticalmente */
-        text-align: left;
-    }
-    .sidebar-nav li {
-        margin-bottom: 1rem;
-    }
-    .sidebar-nav a {
-        flex-direction: row; /* Icono y texto en fila */
-        text-align: left;
-    }
-    .sidebar-nav a i {
-        margin-right: 10px;
-        margin-bottom: 0;
-    }
-    .sidebar-header {
-        font-size: 1.5rem; /* Ajustar tamaño del título del sidebar */
-        margin-bottom: 1rem;
-    }
-
-    .main-content {
-        margin: 20px auto; /* Centrado y margen vertical */
-        padding: 15px; /* Ajustar padding del contenido principal */
-        width: calc(100% - 20px); /* Ocupar casi todo el ancho, dejando padding del body */
-        max-width: 100%; /* Asegurar que no exceda el ancho en móvil */
-    }
-
-    /* Mostrar los botones de "Añadir Mascota", "Calculadora de Comida", "Cerrar Sesión"
-        dentro de main-content en pantallas de móvil, ya que el sidebar es diferente. */
-    .main-content .d-grid.d-md-none {
-        display: grid !important; /* Forzar display grid en móvil */
-    }
-
-    /* Ocultar el botón de Calcular Comida en móvil si ya está en el d-grid.d-md-none */
-    .main-content .d-none.d-md-block {
-        display: none !important;
-    }
-
-    /* Estilos adicionales para las imágenes de las mascotas */
-    .mascota-img {
-        width: 100px;
-        height: 100px;
-        margin-bottom: 10px;
-    }
-    .mascota-card-panel {
-        padding: 15px;
-        border-radius: 10px;
-    }
-    .card-title {
-        font-size: 1.3rem;
-        margin-bottom: 5px;
-    }
-    .card-text-info {
-        font-size: 0.9rem;
-        margin-bottom: 3px;
-    }
-    .no-mascotas-message {
-        padding: 30px;
     }
 }

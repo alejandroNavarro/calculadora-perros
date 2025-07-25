@@ -50,7 +50,7 @@
         String message = (String) session.getAttribute("message");
         String messageType = (String) session.getAttribute("messageType");
         if (message != null && !message.isEmpty()) { %>
-            <div class="alert alert-<%= messageType %> alert-dismissible fade show" role="alert">
+            <div class="alert alert-<%= messageType %> alert-dismissible fade show fixed-top-alert" role="alert">
                 <%= message %>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -79,6 +79,8 @@
             <li><a href="<%= request.getContextPath() %>/MascotaServlet"><i class="fas fa-home"></i> Mis Mascotas</a></li>
             <li><a href="<%= request.getContextPath() %>/MascotaServlet?action=mostrarFormulario"><i class="fas fa-plus-circle"></i> Añadir Mascota</a></li>
             <li><a href="<%= request.getContextPath() %>/CalculadoraComidaServlet"><i class="fas fa-calculator"></i> Calculadora de Comida</a></li>
+            <%-- NUEVO: Enlace a Visitas Veterinarias --%>
+            <li><a href="#" onclick="alert('Selecciona una mascota para ver sus visitas desde su tarjeta, o añade una visita desde el formulario de mascota.'); return false;"><i class="fas fa-stethoscope"></i> Visitas Veterinarias</a></li>
             <li><a href="<%= request.getContextPath() %>/LogoutServlet"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
         </ul>
     </aside>
@@ -127,6 +129,10 @@
                         <div class="d-flex flex-column w-100 mt-auto">
                             <a href="<%= request.getContextPath() %>/CalculadoraComidaServlet?idMascota=<%= mascota.getIdMascota() %>" class="btn btn-info mb-2">
                                 <i class="fas fa-calculator me-2"></i> Calcular Comida
+                            </a>
+                            <%-- NUEVO: Botón para ver visitas --%>
+                            <a href="<%= request.getContextPath() %>/VisitaVeterinarioServlet?action=listar&idMascota=<%= mascota.getIdMascota() %>" class="btn btn-secondary mb-2">
+                                <i class="fas fa-stethoscope me-2"></i> Ver Visitas
                             </a>
                             <a href="<%= request.getContextPath() %>/MascotaServlet?action=editar&idMascota=<%= mascota.getIdMascota() %>" class="btn btn-edit-mascota mb-2">
                                 <i class="fas fa-edit me-2"></i> Editar

@@ -6,6 +6,9 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Arrays" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -18,10 +21,23 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body>
+<%
+    // Recuperar atributos de tema y icono del request (establecidos por el Servlet)
+    String petThemeClass = (String) request.getAttribute("petThemeClass");
+    String petIcon = (String) request.getAttribute("petIcon");
+
+    // Fallback si los atributos no están establecidos (ej. acceso directo a la JSP o error en servlet)
+    if (petThemeClass == null || petThemeClass.isEmpty()) {
+        petThemeClass = "dog-theme"; // Tema por defecto
+    }
+    if (petIcon == null || petIcon.isEmpty()) {
+        petIcon = "🐾"; // Icono por defecto
+    }
+%>
+<body class="<%= petThemeClass %>">
     <header class="app-header">
         <div class="text-center">
-            <span class="dog-icon">🐾</span>
+            <span class="pet-icon"><%= petIcon %></span>
             <h1>Calculadora de Perros y Gatos</h1>
             <p>Herramientas útiles para el cuidado de tu mascota.</p>
         </div>
@@ -45,35 +61,43 @@
             String action = isEditMode ? "actualizar" : "insertar";
 
             // Recuperar valores de la mascota o establecer como vacío si es null
-            String nombre = (mascota != null && mascota.getNombre() != null) ? mascota.getNombre() : "";
-            String raza = (mascota != null && mascota.getRaza() != null) ? mascota.getRaza() : "";
-            String sexo = (mascota != null && mascota.getSexo() != null) ? mascota.getSexo() : "";
+            // Estos valores pueden venir del objeto 'mascota' (si es edición o error precargado)
+            // O del request.getParameter (si hubo un error de validación y se reenvía el form)
+            String nombre = (mascota != null && mascota.getNombre() != null) ? mascota.getNombre() : (request.getParameter("nombre") != null ? request.getParameter("nombre") : "");
+            String raza = (mascota != null && mascota.getRaza() != null) ? mascota.getRaza() : (request.getParameter("raza") != null ? request.getParameter("raza") : "");
+            String sexo = (mascota != null && mascota.getSexo() != null) ? mascota.getSexo() : (request.getParameter("sexo") != null ? request.getParameter("sexo") : "");
             Date fechaNacimiento = (mascota != null) ? mascota.getFechaNacimiento() : null;
-            double peso = (mascota != null) ? mascota.getPeso() : 0.0; // Primitive, cannot be null
-            boolean esterilizado = (mascota != null) ? mascota.isEsterilizado() : false; // Primitive, cannot be null
-            String tipo = (mascota != null && mascota.getTipo() != null) ? mascota.getTipo() : "";
-            String nivelActividad = (mascota != null && mascota.getNivelActividad() != null) ? mascota.getNivelActividad() : "";
-            String condicionSalud = (mascota != null && mascota.getCondicionSalud() != null) ? mascota.getCondicionSalud() : "";
-            String imagen = (mascota != null && mascota.getImagen() != null) ? mascota.getImagen() : "";
+            String fechaNacimientoStr = (fechaNacimiento != null) ? new SimpleDateFormat("yyyy-MM-dd").format(fechaNacimiento) : (request.getParameter("fechaNacimiento") != null ? request.getParameter("fechaNacimiento") : "");
             
-            String color = (mascota != null && mascota.getColor() != null) ? mascota.getColor() : "";
-            String chipID = (mascota != null && mascota.getChipID() != null) ? mascota.getChipID() : "";
-            String observaciones = (mascota != null && mascota.getObservaciones() != null) ? mascota.getObservaciones() : "";
+            double peso = (mascota != null) ? mascota.getPeso() : 0.0; // Primitive, cannot be null
+            String pesoStr = (request.getParameter("peso") != null && !request.getParameter("peso").isEmpty()) ? request.getParameter("peso") : (peso == 0.0 ? "" : String.format(Locale.US, "%.1f", peso));
+            
+            boolean esterilizado = (mascota != null) ? mascota.isEsterilizado() : false; // Primitive, cannot be null
+            String esterilizadoStr = (request.getParameter("esterilizado") != null) ? request.getParameter("esterilizado") : String.valueOf(esterilizado);
 
-            String objetivoPeso = (mascota != null && mascota.getObjetivoPeso() != null) ? mascota.getObjetivoPeso() : "";
-            String estadoReproductor = (mascota != null && mascota.getEstadoReproductor() != null) ? mascota.getEstadoReproductor() : "";
+            String tipo = (mascota != null && mascota.getTipo() != null) ? mascota.getTipo() : (request.getParameter("tipo") != null ? request.getParameter("tipo") : "");
+            String nivelActividad = (mascota != null && mascota.getNivelActividad() != null) ? mascota.getNivelActividad() : (request.getParameter("nivelActividad") != null ? request.getParameter("nivelActividad") : "");
+            String condicionSalud = (mascota != null && mascota.getCondicionSalud() != null) ? mascota.getCondicionSalud() : (request.getParameter("condicionSalud") != null ? request.getParameter("condicionSalud") : "");
+            String imagen = (mascota != null && mascota.getImagen() != null) ? mascota.getImagen() : (request.getParameter("imagenExistente") != null ? request.getParameter("imagenExistente") : ""); // Usar imagenExistente para precargar si se reenvía por error
+            
+            String color = (mascota != null && mascota.getColor() != null) ? mascota.getColor() : (request.getParameter("color") != null ? request.getParameter("color") : "");
+            String chipID = (mascota != null && mascota.getChipID() != null) ? mascota.getChipID() : (request.getParameter("chipID") != null ? request.getParameter("chipID") : "");
+            String observaciones = (mascota != null && mascota.getObservaciones() != null) ? mascota.getObservaciones() : (request.getParameter("observaciones") != null ? request.getParameter("observaciones") : "");
+
+            String objetivoPeso = (mascota != null && mascota.getObjetivoPeso() != null) ? mascota.getObjetivoPeso() : (request.getParameter("objetivoPeso") != null ? request.getParameter("objetivoPeso") : "");
+            String estadoReproductor = (mascota != null && mascota.getEstadoReproductor() != null) ? mascota.getEstadoReproductor() : (request.getParameter("estadoReproductor") != null ? request.getParameter("estadoReproductor") : "");
             Integer numCachorros = (mascota != null) ? mascota.getNumCachorros() : null; // Can be null
-            String tipoAlimentoPredeterminado = (mascota != null && mascota.getTipoAlimentoPredeterminado() != null) ? mascota.getTipoAlimentoPredeterminado() : "";
-            Double kcalPor100gAlimentoPredeterminado = (mascota != null) ? mascota.getKcalPor100gAlimentoPredeterminado() : null; // Can be null
+            String numCachorrosStr = (request.getParameter("numCachorros") != null && !request.getParameter("numCachorros").isEmpty()) ? request.getParameter("numCachorros") : (numCachorros != null ? String.valueOf(numCachorros) : "");
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            String fechaNacimientoStr = (fechaNacimiento != null) ? sdf.format(fechaNacimiento) : "";
+            String tipoAlimentoPredeterminado = (mascota != null && mascota.getTipoAlimentoPredeterminado() != null) ? mascota.getTipoAlimentoPredeterminado() : (request.getParameter("tipoAlimentoPredeterminado") != null ? request.getParameter("tipoAlimentoPredeterminado") : "");
+            Double kcalPor100gAlimentoPredeterminado = (mascota != null) ? mascota.getKcalPor100gAlimentoPredeterminado() : null; // Can be null
+            String kcalPor100gAlimentoPredeterminadoStr = (request.getParameter("kcalPor100gAlimentoPredeterminado") != null && !request.getParameter("kcalPor100gAlimentoPredeterminado").isEmpty()) ? request.getParameter("kcalPor100gAlimentoPredeterminado") : (kcalPor100gAlimentoPredeterminado != null ? String.format(Locale.US, "%.1f", kcalPor100gAlimentoPredeterminado) : "");
 
             // Mensaje de éxito o error (si existe)
             String message = (String) session.getAttribute("message");
             String messageType = (String) session.getAttribute("messageType");
             if (message != null && !message.isEmpty()) { %>
-                <div class="alert alert-<%= messageType %> alert-dismissible fade show" role="alert">
+                <div class="alert alert-<%= messageType %> alert-dismissible fade show fixed-top-alert" role="alert">
                     <%= message %>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -82,20 +106,43 @@
                 session.removeAttribute("messageType");
             }
 
-            // Mapa de tipos de alimento y sus kcal/100g para el dropdown
-            Map<String, Double> tiposAlimentoMap = new LinkedHashMap<>();
-            tiposAlimentoMap.put("PIENSO_SECO_MANTENIMIENTO", 350.0);
-            tiposAlimentoMap.put("PIENSO_SECO_ALTA_ENERGIA", 400.0);
-            tiposAlimentoMap.put("PIENSO_SECO_LIGHT", 300.0);
-            tiposAlimentoMap.put("COMIDA_HUMEDA_LATA", 100.0);
-            tiposAlimentoMap.put("DIETA_BARF_CRUDA", 180.0);
-            tiposAlimentoMap.put("PIENSO_VETERINARIO_RENAL", 320.0);
-            tiposAlimentoMap.put("PIENSO_VETERINARIO_DIABETICO", 340.0);
+            // Mapas y listas para dropdowns (ahora cargados desde el servlet)
+            Map<String, Double> tiposAlimentoMap = (Map<String, Double>) request.getAttribute("tiposAlimento");
+            if (tiposAlimentoMap == null) { // Fallback si el servlet no lo carga
+                tiposAlimentoMap = new LinkedHashMap<>();
+                tiposAlimentoMap.put("PIENSO_SECO_MANTENIMIENTO", 350.0);
+                tiposAlimentoMap.put("PIENSO_SECO_ALTA_ENERGIA", 400.0);
+                tiposAlimentoMap.put("PIENSO_SECO_LIGHT", 300.0);
+                tiposAlimentoMap.put("COMIDA_HUMEDA_LATA", 100.0);
+                tiposAlimentoMap.put("DIETA_BARF_CRUDA", 180.0);
+                tiposAlimentoMap.put("PIENSO_VETERINARIO_RENAL", 320.0);
+                tiposAlimentoMap.put("PIENSO_VETERINARIO_DIABETICO", 340.0);
+            }
+
+            // --- INICIALIZACIÓN ROBUSTA DE LISTAS ---
+            final List<String> listaTiposMascota = (List<String>) request.getAttribute("listaTiposMascota") != null ?
+                                                  (List<String>) request.getAttribute("listaTiposMascota") : Arrays.asList("Perro", "Gato");
+
+            final List<String> listaRazasPerro = (List<String>) request.getAttribute("listaRazasPerro") != null ?
+                                                (List<String>) request.getAttribute("listaRazasPerro") : new ArrayList<>();
+            
+            final List<String> listaRazasGato = (List<String>) request.getAttribute("listaRazasGato") != null ?
+                                               (List<String>) request.getAttribute("listaRazasGato") : new ArrayList<>();
+            
+            final List<String> listaNivelActividad = (List<String>) request.getAttribute("listaNivelActividad") != null ?
+                                                    (List<String>) request.getAttribute("listaNivelActividad") : Arrays.asList("SEDENTARIO", "MODERADO", "ACTIVO", "MUY_ACTIVO");
+
+            final List<String> listaObjetivoPeso = (List<String>) request.getAttribute("listaObjetivoPeso") != null ?
+                                                  (List<String>) request.getAttribute("listaObjetivoPeso") : Arrays.asList("MANTENER", "PERDER", "GANAR");
+
+            final List<String> listaEstadoReproductor = (List<String>) request.getAttribute("listaEstadoReproductor") != null ?
+                                                       (List<String>) request.getAttribute("listaEstadoReproductor") : Arrays.asList("NINGUNO", "GESTACION", "LACTANCIA", "CACHORRO");
+            // --- FIN INICIALIZACIÓN ROBUSTA DE LISTAS ---
         %>
 
         <!-- Tarjeta de bienvenida similar a la imagen -->
         <div class="welcome-card mx-auto" style="max-width: 700px;">
-            <span class="dog-illustration">🐶</span> <!-- Puedes reemplazar esto con un SVG real del perro -->
+            <span class="pet-illustration"></span> <%-- CAMBIO: Usar pet-illustration para que sea dinámico --%>
             ¡Bienvenido/a, <%= usuarioActual.getNombre() %>!
         </div>
 
@@ -116,13 +163,29 @@
                 </div>
 
                 <div class="mb-3">
+                    <label for="tipo" class="form-label">Tipo de Mascota:</label>
+                    <select class="form-select" id="tipo" name="tipo" required onchange="updateRazaOptions(); togglePetSpecificFields();">
+                        <option value="">-- Selecciona el tipo --</option>
+                        <% if (listaTiposMascota != null) {
+                            for (String t : listaTiposMascota) { %>
+                                <option value="<%= t %>" <%= t.equals(tipo) ? "selected" : "" %>><%= t %></option>
+                            <% }
+                        } %>
+                    </select>
+                    <div class="invalid-feedback">El tipo de mascota es obligatorio.</div>
+                </div>
+
+                <div class="mb-3">
                     <label for="raza" class="form-label">Raza:</label>
-                    <input type="text" class="form-control" id="raza" name="raza" value="<%= raza %>" required>
+                    <select class="form-select" id="raza" name="raza" required>
+                        <option value="">-- Selecciona la raza --</option>
+                        <!-- Las opciones se cargarán dinámicamente con JavaScript -->
+                    </select>
                     <div class="invalid-feedback">La raza es obligatoria.</div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Sexo:</label>
+                    <label for="sexo" class="form-label">Sexo:</label>
                     <div class="d-flex gap-3">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="sexo" id="sexoMacho" value="MACHO" <%= "MACHO".equals(sexo) ? "checked" : "" %> required>
@@ -144,7 +207,7 @@
 
                 <div class="mb-3">
                     <label for="peso" class="form-label">Peso (kg):</label>
-                    <input type="number" class="form-control" id="peso" name="peso" step="0.1" min="0.1" value="<%= peso == 0.0 ? "" : String.format(Locale.US, "%.1f", peso) %>" required>
+                    <input type="number" class="form-control" id="peso" name="peso" step="0.1" min="0.1" value="<%= pesoStr %>" required>
                     <div class="invalid-feedback">El peso es obligatorio y debe ser mayor que 0.</div>
                 </div>
 
@@ -152,11 +215,11 @@
                     <label class="form-label">Esterilizado/a:</label>
                     <div class="d-flex gap-3">
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="esterilizado" id="esterilizadoSi" value="true" <%= (mascota != null && mascota.isEsterilizado()) ? "checked" : "" %> required>
+                            <input class="form-check-input" type="radio" name="esterilizado" id="esterilizadoSi" value="true" <%= "true".equals(esterilizadoStr) ? "checked" : "" %> required>
                             <label class="form-check-label" for="esterilizadoSi">Sí</label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="esterilizado" id="esterilizadoNo" value="false" <%= (mascota == null || !mascota.isEsterilizado()) ? "checked" : "" %>>
+                            <input class="form-check-input" type="radio" name="esterilizado" id="esterilizadoNo" value="false" <%= "false".equals(esterilizadoStr) ? "checked" : "" %>>
                             <label class="form-check-label" for="esterilizadoNo">No</label>
                         </div>
                     </div>
@@ -164,34 +227,16 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="tipo" class="form-label">Tipo de Mascota:</label>
-                    <select class="form-select" id="tipo" name="tipo" required onchange="togglePetSpecificFields()">
-                        <option value="">-- Selecciona el tipo --</option>
-                        <option value="Perro" <%= "Perro".equals(tipo) ? "selected" : "" %>>Perro</option>
-                        <option value="Gato" <%= "Gato".equals(tipo) ? "selected" : "" %>>Gato</option>
-                    </select>
-                    <div class="invalid-feedback">El tipo de mascota es obligatorio.</div>
-                </div>
-
-                <div class="mb-3">
                     <label class="form-label">Nivel de Actividad:</label>
                     <div class="d-flex gap-3">
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="nivelActividad" id="actividadSedentario" value="SEDENTARIO" <%= "SEDENTARIO".equals(nivelActividad) ? "checked" : "" %> required>
-                            <label class="form-check-label" for="actividadSedentario">Sedentario</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="nivelActividad" id="actividadModerado" value="MODERADO" <%= "MODERADO".equals(nivelActividad) ? "checked" : "" %>>
-                            <label class="form-check-label" for="actividadModerado">Moderado</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="nivelActividad" id="actividadActivo" value="ACTIVO" <%= "ACTIVO".equals(nivelActividad) ? "checked" : "" %>>
-                            <label class="form-check-label" for="actividadActivo">Activo</label>
-                        </div>
-                        <div class="form-check form-check-inline" id="nivelMuyActivoGroup"> <%-- ID para controlar visibilidad --%>
-                            <input class="form-check-input" type="radio" name="nivelActividad" id="actividadMuyActivo" value="MUY_ACTIVO" <%= "MUY_ACTIVO".equals(nivelActividad) ? "checked" : "" %>>
-                            <label class="form-check-label" for="actividadMuyActivo">Muy Activo</label>
-                        </div>
+                        <% if (listaNivelActividad != null) {
+                            for (String na : listaNivelActividad) { %>
+                                <div class="form-check form-check-inline" id="nivel<%= na.replace("_", "") %>Group" <%= "MUY_ACTIVO".equals(na) && !"Perro".equals(tipo) ? "style='display: none;'" : "" %>>
+                                    <input class="form-check-input" type="radio" name="nivelActividad" id="actividad<%= na.replace("_", "") %>" value="<%= na %>" <%= na.equals(nivelActividad) ? "checked" : "" %> <%= "MUY_ACTIVO".equals(na) && !"Perro".equals(tipo) ? "disabled" : "" %> required>
+                                    <label class="form-check-label" for="actividad<%= na.replace("_", "") %>"><%= na.replace('_', ' ').toLowerCase() %></label>
+                                </div>
+                            <% }
+                        } %>
                     </div>
                     <div class="invalid-feedback">El nivel de actividad es obligatorio.</div>
                 </div>
@@ -226,9 +271,13 @@
                     <% if (isEditMode && mascota != null && imagen != null && !imagen.isEmpty()) { %>
                         <div class="current-image-section">
                             <p class="mb-0">Imagen actual:</p>
-                            <img src="<%= request.getContextPath() %>/uploads/<%= imagen %>" alt="Imagen actual de <%= nombre %>" class="img-thumbnail-preview">
+                            <img src="<%= request.getContextPath() %>/uploads/<%= imagen %>" alt="Imagen actual de <%= nombre %>" class="img-thumbnail-preview" onerror="this.onerror=null;this.src='https://placehold.co/150x150/cccccc/000000?text=No+Image';">
                         </div>
                     <% } %>
+                    <div id="imagePreviewContainer" class="mt-2" style="display: <%= (imagen != null && !imagen.isEmpty()) ? "block" : "none" %>;">
+                        <p class="text-muted">Vista previa de la nueva imagen:</p>
+                        <img id="imagePreview" src="<%= imagen != null && !imagen.isEmpty() ? request.getContextPath() + "/uploads/" + imagen : "" %>" alt="Vista previa de la mascota" class="img-thumbnail-preview" onerror="this.onerror=null;this.src='https://placehold.co/150x150/cccccc/000000?text=No+Image';">
+                    </div>
                 </div>
 
                 <hr>
@@ -237,58 +286,38 @@
                 <div class="mb-3">
                     <label class="form-label">Objetivo de Peso Predeterminado:</label>
                     <div class="d-flex gap-3">
-                        <div class="form-check form-check-inline">
-                            <input type="radio" id="objetivoMantener" name="objetivoPeso" value="MANTENER"
-                                <%= "MANTENER".equals(objetivoPeso) || "".equals(objetivoPeso) ? "checked" : "" %> class="form-check-input">
-                            <label class="form-check-label" for="objetivoMantener">Mantener</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input type="radio" id="objetivoPerder" name="objetivoPeso" value="PERDER"
-                                <%= "PERDER".equals(objetivoPeso) ? "checked" : "" %> class="form-check-input">
-                            <label class="form-check-label" for="objetivoPerder">Perder</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input type="radio" id="objetivoGanar" name="objetivoPeso" value="GANAR"
-                                <%= "GANAR".equals(objetivoPeso) ? "checked" : "" %> class="form-check-input">
-                            <label class="form-check-label" for="objetivoGanar">Ganar</label>
-                        </div>
+                        <% if (listaObjetivoPeso != null) {
+                            for (String op : listaObjetivoPeso) { %>
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" id="objetivo<%= op %>" name="objetivoPeso" value="<%= op %>"
+                                        <%= op.equals(objetivoPeso) || ("MANTENER".equals(op) && "".equals(objetivoPeso)) ? "checked" : "" %> class="form-check-input" required>
+                                    <label class="form-check-label" for="objetivo<%= op %>"><%= op.toLowerCase() %></label>
+                                </div>
+                            <% }
+                        } %>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Estado Reproductor/Especial Predeterminado:</label>
                     <div class="d-flex gap-3">
-                        <div class="form-check form-check-inline">
-                            <input type="radio" id="estadoNinguno" name="estadoReproductor" value="NINGUNO"
-                                <%= "NINGUNO".equals(estadoReproductor) || "".equals(estadoReproductor) ? "checked" : "" %>
-                                class="form-check-input" onchange="toggleCachorrosField()">
-                            <label class="form-check-label" for="estadoNinguno">Ninguno</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input type="radio" id="estadoGestacion" name="estadoReproductor" value="GESTACION"
-                                <%= "GESTACION".equals(estadoReproductor) ? "checked" : "" %>
-                                class="form-check-input" onchange="toggleCachorrosField()">
-                            <label class="form-check-label" for="estadoGestacion">Gestación</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input type="radio" id="estadoLactancia" name="estadoReproductor" value="LACTANCIA"
-                                <%= "LACTANCIA".equals(estadoReproductor) ? "checked" : "" %>
-                                class="form-check-input" onchange="toggleCachorrosField()">
-                            <label class="form-check-label" for="estadoLactancia">Lactancia</label>
-                        </div>
-                        <div class="form-check form-check-inline" id="estadoCachorroGroup"> <%-- ID para controlar visibilidad --%>
-                            <input type="radio" id="estadoCachorro" name="estadoReproductor" value="CACHORRO"
-                                <%= "CACHORRO".equals(estadoReproductor) ? "checked" : "" %>
-                                class="form-check-input" onchange="toggleCachorrosField()">
-                            <label class="form-check-label" for="estadoCachorro">Cachorro</label>
-                        </div>
+                        <% if (listaEstadoReproductor != null) {
+                            for (String er : listaEstadoReproductor) { %>
+                                <div class="form-check form-check-inline" id="estado<%= er.replace("_", "") %>Group" <%= "CACHORRO".equals(er) && !"Perro".equals(tipo) ? "style='display: none;'" : "" %>>
+                                    <input type="radio" id="estado<%= er.replace("_", "") %>" name="estadoReproductor" value="<%= er %>"
+                                        <%= er.equals(estadoReproductor) || ("NINGUNO".equals(er) && "".equals(estadoReproductor)) ? "checked" : "" %>
+                                        class="form-check-input" onchange="toggleCachorrosField()" <%= "CACHORRO".equals(er) && !"Perro".equals(tipo) ? "disabled" : "" %> required>
+                                    <label class="form-check-label" for="estado<%= er.replace("_", "") %>"><%= er.replace('_', ' ').toLowerCase() %></label>
+                                </div>
+                            <% }
+                        } %>
                     </div>
                 </div>
 
-                <div class="mb-3" id="numCachorrosGroup" style="display: none;"> <%-- Inicialmente oculto --%>
+                <div class="mb-3" id="numCachorrosGroup" style="display: none;">
                     <label for="numCachorros" class="form-label">Número de cachorros (si está en lactancia):</label>
                     <input type="number" id="numCachorros" name="numCachorros" min="1" max="15" class="form-control"
-                           value="<%= (numCachorros != null && numCachorros != 0) ? numCachorros : "" %>" placeholder="Ej: 4">
+                            value="<%= numCachorrosStr %>" placeholder="Ej: 4">
                     <div class="invalid-feedback">El número de cachorros es obligatorio y debe ser mayor que 0.</div>
                 </div>
 
@@ -314,8 +343,8 @@
                 <div class="mb-3">
                     <label for="kcalPor100gAlimentoPredeterminado" class="form-label">Kcal por 100g de Alimento Predeterminado (Opcional, sobrescribe el valor del tipo):</label>
                     <input type="number" class="form-control" id="kcalPor100gAlimentoPredeterminado" name="kcalPor100gAlimentoPredeterminado" step="0.1" min="0.1"
-                           value="<%= (kcalPor100gAlimentoPredeterminado != null) ? String.format(Locale.US, "%.1f", kcalPor100gAlimentoPredeterminado) : "" %>"
-                           placeholder="Ej: 350.0">
+                            value="<%= kcalPor100gAlimentoPredeterminadoStr %>"
+                            placeholder="Ej: 350.0">
                     <small class="form-text text-muted">Introduce las kilocalorías por 100 gramos si conoces el valor exacto de tu alimento predeterminado.</small>
                 </div>
 
@@ -339,7 +368,25 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Mapa de tipos de alimento y sus kcal/100g para usar en JavaScript
+        // Datos de razas para cargar dinámicamente (ahora precargados desde JSP)
+        const razasPerro = [
+            <% List<String> rp = (List<String>) request.getAttribute("listaRazasPerro");
+               if (rp != null) {
+                   for (int i = 0; i < rp.size(); i++) {
+                       out.print("'" + rp.get(i) + "'" + (i < rp.size() - 1 ? "," : ""));
+                   }
+               } %>
+        ];
+        const razasGato = [
+            <% List<String> rg = (List<String>) request.getAttribute("listaRazasGato");
+               if (rg != null) {
+                   for (int i = 0; i < rg.size(); i++) {
+                       out.print("'" + rg.get(i) + "'" + (i < rg.size() - 1 ? "," : ""));
+                   }
+               } %>
+        ];
+
+        // Mapa de tipos de alimento y sus kcal/100g para usar en JavaScript (precargado desde JSP)
         const jsTiposAlimento = {
             <%
                 boolean first = true;
@@ -356,155 +403,260 @@
             %>
         };
 
-        // Función para mostrar/ocultar el campo de número de cachorros
-        function toggleCachorrosField() {
-            const estadoReproductorRadios = document.querySelectorAll('input[name="estadoReproductor"]');
-            let estadoReproductor = '';
-            estadoReproductorRadios.forEach(radio => {
-                if (radio.checked) {
-                    estadoReproductor = radio.value;
-                }
-            });
-
+        document.addEventListener('DOMContentLoaded', function() {
+            const tipoSelect = document.getElementById('tipo');
+            const razaSelect = document.getElementById('raza');
+            // const estadoReproductorSelect = document.getElementById('estadoReproductor'); // ESTO ERA EL PROBLEMA: No existe un elemento con este ID
             const numCachorrosGroup = document.getElementById('numCachorrosGroup');
             const numCachorrosInput = document.getElementById('numCachorros');
+            const fotoUrlInput = document.getElementById('imagenFile');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const tipoAlimentoPredeterminadoSelect = document.getElementById('tipoAlimentoPredeterminado');
+            const kcalPor100gAlimentoPredeterminadoInput = document.getElementById('kcalPor100gAlimentoPredeterminado');
+            const body = document.body;
+            const petIconElement = document.querySelector('.pet-icon');
+            const petIllustrationElement = document.querySelector('.pet-illustration');
 
-            if (estadoReproductor === 'LACTANCIA') {
-                numCachorrosGroup.style.display = 'block';
-                numCachorrosInput.setAttribute('required', 'required');
-            } else {
-                numCachorrosGroup.style.display = 'none';
-                numCachorrosInput.removeAttribute('required');
-                numCachorrosInput.value = ''; // Limpiar el valor cuando se oculta
-                // Asegurarse de que no tenga la clase is-invalid si se oculta
-                numCachorrosInput.classList.remove('is-invalid');
-                const feedbackDiv = numCachorrosInput.nextElementSibling;
-                if (feedbackDiv && feedbackDiv.classList.contains('invalid-feedback')) {
-                    feedbackDiv.style.display = 'none';
-                }
-            }
-        }
-
-        // Función para actualizar el campo de Kcal por 100g cuando cambia el tipo de alimento predeterminado
-        function updateKcalPredeterminado() {
-            const tipoAlimentoSelect = document.getElementById('tipoAlimentoPredeterminado');
-            const kcalInput = document.getElementById('kcalPor100gAlimentoPredeterminado');
-            const selectedType = tipoAlimentoSelect.value;
-
-            if (selectedType && jsTiposAlimento[selectedType] !== undefined) { // Usar !== undefined para manejar 0.0 correctamente
-                kcalInput.value = jsTiposAlimento[selectedType];
-            } else {
-                kcalInput.value = '';
-            }
-        }
-
-        // Función para mostrar/ocultar campos específicos de perro/gato
-        function togglePetSpecificFields() {
-            const tipoSelect = document.getElementById('tipo');
-            const selectedTipo = tipoSelect.value; // Obtener el valor del select
-
-            const nivelMuyActivoGroup = document.getElementById('nivelMuyActivoGroup');
+            const nivelMuyActivoGroup = document.getElementById('nivelMUYACTIVOGroup');
             const actividadMuyActivoRadio = document.getElementById('actividadMuyActivo');
             const actividadModeradoRadio = document.getElementById('actividadModerado');
 
-            const estadoCachorroGroup = document.getElementById('estadoCachorroGroup');
+            const estadoCachorroGroup = document.getElementById('estadoCACHORROGroup');
             const estadoCachorroRadio = document.getElementById('estadoCachorro');
             const estadoNingunoRadio = document.getElementById('estadoNinguno');
-            
-            if (selectedTipo === 'Perro') {
-                // Es un perro
-                nivelMuyActivoGroup.style.display = 'inline-block'; // Mostrar "Muy Activo"
-                actividadMuyActivoRadio.setAttribute('required', 'required'); // Hacerlo requerido para perros
-                
-                estadoCachorroGroup.style.display = 'inline-block'; // Mostrar "Cachorro" en estado reproductor
-                estadoCachorroRadio.setAttribute('required', 'required'); // Hacerlo requerido para perros
-                
-            } else if (selectedTipo === 'Gato') {
-                // Es un gato
-                nivelMuyActivoGroup.style.display = 'none'; // Ocultar "Muy Activo"
-                actividadMuyActivoRadio.removeAttribute('required'); // Quitar requerido
-                // Si "Muy Activo" estaba seleccionado, deseleccionarlo y seleccionar "Moderado"
-                if (actividadMuyActivoRadio && actividadMuyActivoRadio.checked) {
-                    if (actividadModeradoRadio) {
-                        actividadModeradoRadio.checked = true;
-                    } else {
-                        // Fallback si Moderado no existe (debería existir)
-                        document.getElementById('actividadSedentario').checked = true;
-                    }
+
+            // --- DEBUGGING CONSOLE LOGS ---
+            console.log("--- DEBUGGING mascotaForm.jsp ---");
+            console.log("razasPerro (JS):", razasPerro);
+            console.log("razasGato (JS):", razasGato);
+            console.log("Tipo de mascota inicial (JSP):", "<%= tipo %>");
+            console.log("Raza inicial (JSP):", "<%= raza %>");
+            // --- FIN DEBUGGING CONSOLE LOGS ---
+
+
+            // Función para actualizar las opciones de raza según el tipo de mascota
+            function updateRazaOptions() {
+                const selectedTipo = tipoSelect.value;
+                razaSelect.innerHTML = '<option value="">-- Selecciona la raza --</option>';
+
+                let razas = [];
+                if (selectedTipo === 'Perro') {
+                    razas = razasPerro;
+                } else if (selectedTipo === 'Gato') {
+                    razas = razasGato;
                 }
-                // Limpiar validación si estaba marcada
-                actividadMuyActivoRadio.classList.remove('is-invalid');
-                const muyActivoFeedback = nivelMuyActivoGroup.querySelector('.invalid-feedback');
-                if (muyActivoFeedback) muyActivoFeedback.style.display = 'none';
 
+                razas.forEach(raza => {
+                    const option = document.createElement('option');
+                    option.value = raza;
+                    option.textContent = raza;
+                    razaSelect.appendChild(option);
+                });
 
-                estadoCachorroGroup.style.display = 'none'; // Ocultar "Cachorro" en estado reproductor
-                estadoCachorroRadio.removeAttribute('required'); // Quitar requerido
-                // Si "Cachorro" estaba seleccionado, deseleccionarlo y seleccionar "Ninguno"
-                if (estadoCachorroRadio && estadoCachorroRadio.checked) {
-                    if (estadoNingunoRadio) {
-                        estadoNingunoRadio.checked = true;
-                    } else {
-                        // Fallback si Ninguno no existe (debería existir)
-                        document.getElementById('estadoGestacion').checked = true; // O alguna otra opción por defecto
-                    }
+                // Seleccionar la raza actual si existe y coincide con el nuevo tipo
+                // Esta variable 'currentRaza' viene precargada de la JSP si estamos en modo edición
+                const currentRaza = "<%= raza %>"; 
+                console.log("updateRazaOptions - selectedTipo:", selectedTipo);
+                console.log("updateRazaOptions - currentRaza (from JSP):", currentRaza);
+                console.log("updateRazaOptions - available razas:", razas);
+
+                if (currentRaza && razas.includes(currentRaza)) {
+                    razaSelect.value = currentRaza;
+                    console.log("updateRazaOptions - Raza seleccionada:", currentRaza);
+                } else {
+                    // Si la raza precargada no coincide con el nuevo tipo, o no hay raza precargada,
+                    // asegurarse de que el select de raza esté en la opción por defecto.
+                    razaSelect.value = ""; 
+                    console.log("updateRazaOptions - Raza no encontrada o no coincide, reseteando selección.");
                 }
-                // Limpiar validación si estaba marcada
-                estadoCachorroRadio.classList.remove('is-invalid');
-                const cachorroFeedback = estadoCachorroGroup.querySelector('.invalid-feedback');
-                if (cachorroFeedback) cachorroFeedback.style.display = 'none';
-
-            } else {
-                // Si no se ha seleccionado ningún tipo (opción "-- Selecciona el tipo --")
-                nivelMuyActivoGroup.style.display = 'inline-block'; // Mantener visible por defecto
-                actividadMuyActivoRadio.setAttribute('required', 'required'); // Mantener requerido
-                
-                estadoCachorroGroup.style.display = 'inline-block'; // Mantener visible por defecto
-                estadoCachorroRadio.setAttribute('required', 'required'); // Mantener requerido
             }
-            // Asegurarse de que el campo de cachorros se ajuste después de cambiar el tipo de mascota
-            toggleCachorrosField();
-        }
+
+            // Función para mostrar/ocultar el campo de número de cachorros
+            function toggleCachorrosField() {
+                // Obtener el valor del botón de radio seleccionado para "estadoReproductor"
+                const estadoReproductorRadios = document.querySelectorAll('input[name="estadoReproductor"]');
+                let estadoReproductorValue = '';
+                for (const radio of estadoReproductorRadios) {
+                    if (radio.checked) {
+                        estadoReproductorValue = radio.value;
+                        break;
+                    }
+                }
+
+                if (numCachorrosGroup) {
+                    if (estadoReproductorValue === 'LACTANCIA') {
+                        numCachorrosGroup.style.display = 'block';
+                        numCachorrosInput.setAttribute('required', 'required');
+                    } else {
+                        numCachorrosGroup.style.display = 'none';
+                        numCachorrosInput.removeAttribute('required');
+                        numCachorrosInput.value = '';
+                        numCachorrosInput.classList.remove('is-invalid');
+                        const feedbackDiv = numCachorrosInput.nextElementSibling;
+                        if (feedbackDiv && feedbackDiv.classList.contains('invalid-feedback')) {
+                            feedbackDiv.style.display = 'none';
+                        }
+                    }
+                }
+            }
+
+            // Función para actualizar el campo de Kcal por 100g cuando cambia el tipo de alimento predeterminado
+            function updateKcalPredeterminado() {
+                const selectedType = tipoAlimentoPredeterminadoSelect.value;
+                const currentKcalValue = kcalPor100gAlimentoPredeterminadoInput.value.trim();
+                const defaultKcalForCurrentType = jsTiposAlimento[selectedType] !== undefined ? jsTiposAlimento[selectedType].toString() : '';
+
+                if (currentKcalValue === '' || currentKcalValue === defaultKcalForCurrentType) {
+                    if (selectedType && jsTiposAlimento[selectedType] !== undefined) {
+                        kcalPor100gAlimentoPredeterminadoInput.value = jsTiposAlimento[selectedType];
+                    } else {
+                        kcalPor100gAlimentoPredeterminadoInput.value = '';
+                    }
+                }
+            }
+
+            // Función para actualizar la vista previa de la imagen
+            function updateImagePreview() {
+                const file = fotoUrlInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreviewContainer.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    const existingImageUrl = "<%= request.getContextPath() %>/uploads/<%= imagen %>";
+                    // Asegurarse de que la URL no sea vacía, "null" o "uploads/"
+                    if (existingImageUrl && !existingImageUrl.endsWith("null") && !existingImageUrl.endsWith("uploads/")) {
+                         imagePreview.src = existingImageUrl;
+                         imagePreviewContainer.style.display = 'block';
+                    } else {
+                        imagePreview.src = ""; // Limpiar src si no hay imagen
+                        imagePreviewContainer.style.display = 'none';
+                    }
+                }
+            }
+
+            // Función para ajustar la visibilidad de los campos específicos de perro/gato y el tema
+            function togglePetSpecificFields() {
+                const selectedTipo = tipoSelect.value;
+                
+                // Actualizar clase del body para el tema
+                body.classList.remove('dog-theme', 'cat-theme');
+                if (selectedTipo === 'Gato') {
+                    body.classList.add('cat-theme');
+                    if (petIconElement) petIconElement.textContent = '🐱';
+                    if (petIllustrationElement) petIllustrationElement.textContent = '🐱';
+                } else { // Por defecto o "Perro"
+                    body.classList.add('dog-theme');
+                    if (petIconElement) petIconElement.textContent = '�';
+                    if (petIllustrationElement) petIllustrationElement.textContent = '🐶';
+                }
+
+                // Ajustar visibilidad y atributos para "Muy Activo" (solo Perros)
+                if (nivelMuyActivoGroup && actividadMuyActivoRadio) {
+                    if (selectedTipo === 'Perro') {
+                        nivelMuyActivoGroup.style.display = 'inline-block';
+                        actividadMuyActivoRadio.removeAttribute('disabled');
+                        actividadMuyActivoRadio.setAttribute('required', 'required');
+                    } else {
+                        nivelMuyActivoGroup.style.display = 'none';
+                        actividadMuyActivoRadio.setAttribute('disabled', 'true');
+                        actividadMuyActivoRadio.removeAttribute('required');
+                        if (actividadMuyActivoRadio.checked) {
+                            if (actividadModeradoRadio) {
+                                actividadModeradoRadio.checked = true;
+                            } else {
+                                document.getElementById('actividadSedentario').checked = true;
+                            }
+                        }
+                        actividadMuyActivoRadio.classList.remove('is-invalid');
+                        const muyActivoFeedback = nivelMuyActivoGroup.querySelector('.invalid-feedback');
+                        if (muyActivoFeedback) muyActivoFeedback.style.display = 'none';
+                    }
+                }
+
+                // Ajustar visibilidad y atributos para "Cachorro" (solo Perros)
+                if (estadoCachorroGroup && estadoCachorroRadio) {
+                    if (selectedTipo === 'Perro') {
+                        estadoCachorroGroup.style.display = 'inline-block';
+                        estadoCachorroRadio.removeAttribute('disabled');
+                        estadoCachorroRadio.setAttribute('required', 'required');
+                    } else {
+                        estadoCachorroGroup.style.display = 'none';
+                        estadoCachorroRadio.setAttribute('disabled', 'true');
+                        estadoCachorroRadio.removeAttribute('required');
+                        if (estadoCachorroRadio.checked) {
+                            if (estadoNingunoRadio) {
+                                estadoNingunoRadio.checked = true;
+                            } else {
+                                document.getElementById('estadoGestacion').checked = true;
+                            }
+                        }
+                        estadoCachorroRadio.classList.remove('is-invalid');
+                        const cachorroFeedback = estadoCachorroGroup.querySelector('.invalid-feedback');
+                        if (cachorroFeedback) cachorroFeedback.style.display = 'none';
+                    }
+                }
+                
+                // Asegurarse de que toggleCachorrosField se llama DESPUÉS de que los radios de estadoReproductor
+                // hayan sido ajustados por togglePetSpecificFields, si es necesario.
+                // Sin embargo, en la carga inicial, se llama directamente.
+                toggleCachorrosField(); 
+            }
 
 
-        // Validación del formulario en el lado del cliente
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar el estado de los campos dependientes al cargar la página
-            toggleCachorrosField();
-            togglePetSpecificFields(); // Llamar al inicio para ajustar según el tipo precargado
-
+            // Validación del formulario en el lado del cliente
             const mascotaForm = document.getElementById('mascotaForm');
 
             mascotaForm.addEventListener('submit', function(event) {
                 let isValid = true;
 
-                // Limpiar todos los mensajes de validación y clases 'is-invalid' antes de revalidar
                 document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
                 document.querySelectorAll('.invalid-feedback').forEach(el => el.style.display = 'none');
 
-                // Validar campos de texto, número, fecha y select con el atributo 'required'
-                const requiredInputs = mascotaForm.querySelectorAll('input[type="text"][required], input[type="number"][required], input[type="date"][required], select[required]');
+                const requiredInputs = mascotaForm.querySelectorAll('input[required]:not([disabled]), select[required]:not([disabled]), textarea[required]:not([disabled])');
                 requiredInputs.forEach(input => {
-                    if (input.value.trim() === '' || (input.type === 'number' && parseFloat(input.value) <= 0)) {
+                    if (input.value.trim() === '') {
                         isValid = false;
                         input.classList.add('is-invalid');
-                        const feedbackDiv = input.nextElementSibling; // Asume que el div invalid-feedback es el siguiente hermano
+                        const feedbackDiv = input.nextElementSibling;
                         if (feedbackDiv && feedbackDiv.classList.contains('invalid-feedback')) {
                             feedbackDiv.style.display = 'block';
+                        }
+                    } else if (input.type === 'number' && parseFloat(input.value) <= 0) {
+                        isValid = false;
+                        input.classList.add('is-invalid');
+                        const feedbackDiv = input.nextElementSibling;
+                        if (feedbackDiv && feedbackDiv.classList.contains('invalid-feedback')) {
+                            feedbackDiv.textContent = 'El valor debe ser mayor que 0.';
+                            feedbackDiv.style.display = 'block';
+                        }
+                    } else if (input.type === 'date') {
+                        const selectedDate = new Date(input.value);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        if (selectedDate > today) {
+                            isValid = false;
+                            input.classList.add('is-invalid');
+                            const feedbackDiv = input.nextElementSibling;
+                            if (feedbackDiv && feedbackDiv.classList.contains('invalid-feedback')) {
+                                feedbackDiv.textContent = 'La fecha no puede ser futura.';
+                                feedbackDiv.style.display = 'block';
+                            }
                         }
                     }
                 });
 
-                // Validar grupos de radio buttons (Sexo, Esterilizado/a, Nivel de Actividad, Objetivo de Peso, Estado Reproductor)
-                // Se añade 'objetivoPeso' y 'estadoReproductor' a la lista de grupos a validar
                 const radioGroups = ['sexo', 'esterilizado', 'nivelActividad', 'objetivoPeso', 'estadoReproductor'];
                 radioGroups.forEach(groupName => {
-                    const radiosInGroup = document.querySelectorAll(`input[name="${groupName}"]:not([disabled])`); // Ignorar radios deshabilitados
+                    const radiosInGroup = document.querySelectorAll(`input[name="${groupName}"]:not([disabled])`);
                     const isAnyRadioChecked = Array.from(radiosInGroup).some(radio => radio.checked);
-
-                    // Solo validar si el grupo no está oculto o si alguna opción está visible y marcada como requerida
+                    
                     const parentDiv = radiosInGroup.length > 0 ? radiosInGroup[0].closest('.mb-3') : null;
-                    const isGroupVisible = parentDiv ? parentDiv.style.display !== 'none' : true; // Asume visible por defecto
+                    const isGroupVisible = parentDiv ? (parentDiv.style.display !== 'none') : true;
 
                     if (isGroupVisible && !isAnyRadioChecked) {
                         isValid = false;
@@ -516,11 +668,7 @@
                     }
                 });
 
-
-                // Validación específica para numCachorros si está visible
-                const numCachorrosInput = document.getElementById('numCachorros');
-                const numCachorrosGroup = document.getElementById('numCachorrosGroup');
-                if (numCachorrosGroup.style.display === 'block') {
+                if (numCachorrosGroup.style.display === 'block' && numCachorrosInput.hasAttribute('required')) {
                     if (numCachorrosInput.value.trim() === '' || parseInt(numCachorrosInput.value) <= 0) {
                         isValid = false;
                         numCachorrosInput.classList.add('is-invalid');
@@ -531,10 +679,12 @@
                         }
                     }
                 }
+                
+                // No se necesita validar fotoUrlInput como URL, ya que es un input type="file"
+                // y su valor no es una URL de red. La validación se hace a nivel de servidor si es necesario.
 
                 if (!isValid) {
-                    event.preventDefault(); // Detener el envío del formulario
-                    // Desplazarse al primer campo con error
+                    event.preventDefault();
                     const firstInvalid = document.querySelector('.is-invalid');
                     if (firstInvalid) {
                         firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -542,7 +692,6 @@
                 }
             });
 
-            // Event listeners para limpiar la validación al escribir/cambiar
             document.querySelectorAll('.form-control, .form-select').forEach(input => {
                 input.addEventListener('input', function() {
                     if (this.classList.contains('is-invalid')) {
@@ -554,17 +703,31 @@
                     }
                 });
             });
-
-            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+             document.querySelectorAll('input[type="radio"]').forEach(radio => {
                 radio.addEventListener('change', function() {
                     const radioGroupName = this.name;
                     const radiosInGroup = document.querySelectorAll(`input[name="${radioGroupName}"]`);
                     radiosInGroup.forEach(r => r.classList.remove('is-invalid'));
-                    // El feedback div para radios está en el padre .mb-3
-                    const feedbackDiv = this.closest('.mb-3').querySelector('.invalid-feedback');
-                    if (feedbackDiv) feedbackDiv.style.display = 'none';
+                    const closestMb3 = this.closest('.mb-3');
+                    if (closestMb3) {
+                        const feedbackDiv = closestMb3.querySelector('.invalid-feedback');
+                        if (feedbackDiv) feedbackDiv.style.display = 'none';
+                    }
                 });
             });
+
+            fotoUrlInput.addEventListener('change', updateImagePreview);
+
+            // Inicializar la vista previa de la imagen al cargar la página
+            updateImagePreview();
+            // Inicializar el tema y los campos específicos al cargar la página
+            togglePetSpecificFields();
+            // Inicializar las opciones de raza al cargar la página
+            updateRazaOptions();
+            // Inicializar la visibilidad del campo numCachorros
+            // Esta llamada se hace al final para asegurar que todos los elementos estén disponibles
+            // y que togglePetSpecificFields haya tenido la oportunidad de ajustar los radios.
+            toggleCachorrosField(); 
         });
     </script>
 </body>

@@ -17,11 +17,14 @@ import java.io.File; // Para manejar archivos en el sistema de archivos
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException; // Importación específica para este error
-import java.text.ParseException;
+import java.text.ParseException; // Mantener importación por si se usa en otro lado o se decide relanzar
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays; // Para Arrays.asList
 import java.util.Date; // Para SimpleDateFormat.parse()
+import java.util.LinkedHashMap; // Para mantener el orden de los tipos de alimento
+import java.util.Map;
 import java.util.UUID; // Para generar nombres de archivo únicos
 
 // Anotación necesaria para manejar la subida de archivos (multipart/form-data)
@@ -73,6 +76,59 @@ public class MascotaServlet extends HttpServlet {
     }
 
     /**
+     * Carga las listas de opciones para los dropdowns del formulario de mascota.
+     * @param request Objeto HttpServletRequest.
+     */
+    private void cargarListasParaFormulario(HttpServletRequest request) {
+        // Listas para los dropdowns
+        request.setAttribute("listaTiposMascota", Arrays.asList("Perro", "Gato"));
+        request.setAttribute("listaRazasPerro", Arrays.asList(
+            "Labrador Retriever", "Pastor Alemán", "Golden Retriever", "Bulldog Francés", "Bulldog Inglés",
+            "Poodle", "Beagle", "Rottweiler", "Dachshund", "Shih Tzu", "Yorkshire Terrier", "Boxer",
+            "Siberian Husky", "Doberman Pinscher", "Gran Danés", "Bichón Frisé", "Chihuahua", "Pug",
+            "Border Collie", "Australian Shepherd", "Cocker Spaniel", "Pointer", "Basset Hound",
+            "San Bernardo", "Pastor Australiano", "Boston Terrier", "Akita", "Corgi", "Otros Perros",
+            "Airedale Terrier", "Akita Americano", "Alaskan Malamute", "American Staffordshire Terrier",
+            "Basenji", "Bichón Habanero", "Bóxer", "Boyero de Berna", "Braco Alemán de Pelo Corto",
+            "Cane Corso", "Cavalier King Charles Spaniel", "Chow Chow", "Cocker Americano",
+            "Collie", "Dálmata", "Dogo Argentino", "Dogo de Burdeos", "Fox Terrier", "Galgo Español",
+            "Jack Russell Terrier", "Keeshond", "Leonberger", "Lhasa Apso", "Maltés", "Mastín Napolitano",
+            "Mastín Tibetano", "Pastor Belga Malinois", "Pastor Blanco Suizo", "Pekinés", "Pinscher Miniatura",
+            "Pit Bull Terrier Americano", "Pomerania", "Presa Canario", "Samoyedo", "Schnauzer Miniatura",
+            "Setter Irlandés", "Terranova", "Teckel", "West Highland White Terrier", "Whippet", "Xoloitzcuintle"
+        ));
+        request.setAttribute("listaRazasGato", Arrays.asList(
+            "Siamés", "Persa", "Maine Coon", "Ragdoll", "Bengalí", "Sphynx", "Británico de Pelo Corto",
+            "Abisinio", "Birmano", "Exótico de Pelo Corto", "Devon Rex", "Scottish Fold", "Bosque de Noruega",
+            "Oriental de Pelo Corto", "Ruso Azul", "American Shorthair", "Manx", "Bombay",
+            "Tonkinés", "Otros Gatos", "Angora Turco", "Azul Ruso", "Balinés", "Bobtail Japonés",
+            "Burmés", "Chartreux", "Cornish Rex", "Cymric", "Egipcio Mau", "Europeo de Pelo Corto",
+            "Himalayo", "Korat", "Munchkin", "Ocicat", "Pixie-bob", "Ragamuffin", "Savannah",
+            "Selkirk Rex", "Siberiano", "Singapura", "Snowshoe", "Somali", "Toyger", "Van Turco"
+        ));
+        request.setAttribute("listaNivelActividad", Arrays.asList("SEDENTARIO", "MODERADO", "ACTIVO", "MUY_ACTIVO"));
+        request.setAttribute("listaObjetivoPeso", Arrays.asList("MANTENER", "PERDER", "GANAR"));
+        request.setAttribute("listaEstadoReproductor", Arrays.asList("NINGUNO", "GESTACION", "LACTANCIA", "CACHORRO"));
+
+        // Mapa de tipos de alimento y sus kcal/100g
+        Map<String, Double> tiposAlimentoMap = new LinkedHashMap<>();
+        tiposAlimentoMap.put("PIENSO_SECO_MANTENIMIENTO", 350.0);
+        tiposAlimentoMap.put("PIENSO_SECO_ALTA_ENERGIA", 400.0);
+        tiposAlimentoMap.put("PIENSO_SECO_LIGHT", 300.0);
+        tiposAlimentoMap.put("COMIDA_HUMEDA_LATA", 100.0);
+        tiposAlimentoMap.put("DIETA_BARF_CRUDA", 180.0);
+        tiposAlimentoMap.put("PIENSO_VETERINARIO_RENAL", 320.0);
+        tiposAlimentoMap.put("PIENSO_VETERINARIO_DIABETICO", 340.0);
+        request.setAttribute("tiposAlimento", tiposAlimentoMap);
+
+        // --- LÍNEA DE DIAGNÓSTICO AÑADIDA ---
+        List<String> razasPerro = (List<String>) request.getAttribute("listaRazasPerro");
+        List<String> razasGato = (List<String>) request.getAttribute("listaRazasGato");
+        System.out.println("MascotaServlet: Cargando listas para formulario. Razas Perro tamaño: " + (razasPerro != null ? razasPerro.size() : "null") + ", Razas Gato tamaño: " + (razasGato != null ? razasGato.size() : "null"));
+        // --- FIN LÍNEA DE DIAGNÓSTICO ---
+    }
+
+    /**
      * Maneja las solicitudes GET para mostrar el panel de mascotas, el formulario de nueva mascota,
      * el formulario de edición de mascota o la confirmación de eliminación.
      * @param request Objeto HttpServletRequest que contiene la solicitud del cliente.
@@ -97,10 +153,17 @@ public class MascotaServlet extends HttpServlet {
         try {
             // Cargar mascotas para el panel principal o el selector de la calculadora
             cargarMascotas(request, session, usuarioActual);
+            cargarListasParaFormulario(request); // Cargar listas para dropdowns
+
+            String petThemeClass = "dog-theme"; // Tema por defecto
+            String petIcon = "🐾"; // Icono por defecto
 
             switch (action != null ? action : "") {
                 case "mostrarFormulario":
                     request.setAttribute("isEditMode", false); // Explicitamente para modo "añadir"
+                    // Para nueva mascota, el tema por defecto es perro
+                    request.setAttribute("petThemeClass", petThemeClass);
+                    request.setAttribute("petIcon", petIcon);
                     request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
                     break;
                 case "editar":
@@ -113,6 +176,18 @@ public class MascotaServlet extends HttpServlet {
                             if (mascotaExistente != null && mascotaExistente.getIdUsuario() == usuarioActual.getIdUsuario()) {
                                 request.setAttribute("mascota", mascotaExistente); // Establece la mascota para precargar el formulario
                                 request.setAttribute("isEditMode", true); // Explicitamente para modo "editar"
+                                
+                                // Determinar el tema y el icono basado en el tipo de la mascota que se está editando
+                                if ("Gato".equals(mascotaExistente.getTipo())) {
+                                    petThemeClass = "cat-theme";
+                                    petIcon = "🐱";
+                                } else { // Default to dog-theme for "Perro" or other types
+                                    petThemeClass = "dog-theme";
+                                    petIcon = "🐾";
+                                }
+                                request.setAttribute("petThemeClass", petThemeClass);
+                                request.setAttribute("petIcon", petIcon);
+
                                 request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
                                 System.out.println("doGet: Cargando formulario de edición para mascota ID: " + idMascota);
                             } else {
@@ -249,6 +324,17 @@ public class MascotaServlet extends HttpServlet {
                         request.setAttribute("isEditMode", false); // ¡Importante! Mantener el modo "añadir" en caso de error
                         session.setAttribute("message", message);
                         session.setAttribute("messageType", messageType);
+                        
+                        // Establecer el tema y el icono para la JSP en caso de error de validación
+                        String petThemeClassError = "dog-theme"; // Default
+                        String petIconError = "🐾"; // Default
+                        if ("Gato".equals(nuevaMascota.getTipo())) {
+                            petThemeClassError = "cat-theme";
+                            petIconError = "🐱";
+                        }
+                        request.setAttribute("petThemeClass", petThemeClassError);
+                        request.setAttribute("petIcon", petIconError);
+                        cargarListasParaFormulario(request); // Recargar listas de dropdowns
                         request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
                         return;
                     }
@@ -346,6 +432,17 @@ public class MascotaServlet extends HttpServlet {
                                 request.setAttribute("isEditMode", true); // ¡Importante! Mantener el modo "editar" en caso de error
                                 session.setAttribute("message", message);
                                 session.setAttribute("messageType", messageType);
+
+                                // Establecer el tema y el icono para la JSP en caso de error de validación
+                                String petThemeClassError = "dog-theme"; // Default
+                                String petIconError = "🐾"; // Default
+                                if ("Gato".equals(mascotaConNuevosDatos.getTipo())) {
+                                    petThemeClassError = "cat-theme";
+                                    petIconError = "🐱";
+                                }
+                                request.setAttribute("petThemeClass", petThemeClassError);
+                                request.setAttribute("petIcon", petIconError);
+                                cargarListasParaFormulario(request); // Recargar listas de dropdowns
                                 request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
                                 return;
                             }
@@ -443,66 +540,102 @@ public class MascotaServlet extends HttpServlet {
             }
             session.setAttribute("message", errorMessage);
             session.setAttribute("messageType", "danger");
+            
             // Si hay un error de DB, intentar precargar el formulario con los datos que el usuario envió
+            Mascota mascotaEnError = null;
+            // No se necesita try-catch aquí porque buildMascotaFromRequest ya no lanza ParseException
             if ("insertar".equals(action)) {
-                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null));
+                mascotaEnError = buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null);
                 request.setAttribute("isEditMode", false); // Mantener en modo "añadir"
-                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                return;
             } else if ("actualizar".equals(action)) {
-                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), Integer.parseInt(request.getParameter("idMascota"))));
+                mascotaEnError = buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), Integer.parseInt(request.getParameter("idMascota")));
                 request.setAttribute("isEditMode", true); // Mantener en modo "editar"
-                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                return;
-            } else {
-                response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-                return;
             }
+            request.setAttribute("mascota", mascotaEnError);
+
+            // Establecer el tema y el icono para la JSP en caso de error
+            String petThemeClassError = "dog-theme"; // Default
+            String petIconError = "🐾"; // Default
+            if (mascotaEnError != null && "Gato".equals(mascotaEnError.getTipo())) {
+                petThemeClassError = "cat-theme";
+                petIconError = "🐱";
+            }
+            request.setAttribute("petThemeClass", petThemeClassError);
+            request.setAttribute("petIcon", petIconError);
+            cargarListasParaFormulario(request); // Recargar listas de dropdowns
+            request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+            return;
+
         } catch (SQLException e) {
             e.printStackTrace();
             session.setAttribute("message", "Error de base de datos en MascotaServlet (POST): " + e.getMessage());
             session.setAttribute("messageType", "danger");
+            
             // Si hay un error de DB, intentar precargar el formulario con los datos que el usuario envió
+            Mascota mascotaEnError = null;
+            // No se necesita try-catch aquí porque buildMascotaFromRequest ya no lanza ParseException
             if ("insertar".equals(action)) {
-                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null));
+                mascotaEnError = buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null);
                 request.setAttribute("isEditMode", false); // Mantener en modo "añadir"
-                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                return;
             } else if ("actualizar".equals(action)) {
-                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), Integer.parseInt(request.getParameter("idMascota"))));
+                mascotaEnError = buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), Integer.parseInt(request.getParameter("idMascota")));
                 request.setAttribute("isEditMode", true); // Mantener en modo "editar"
-                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                return;
-            } else {
-                response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-                return;
             }
+            request.setAttribute("mascota", mascotaEnError);
+
+            // Establecer el tema y el icono para la JSP en caso de error
+            String petThemeClassError = "dog-theme"; // Default
+            String petIconError = "🐾"; // Default
+            if (mascotaEnError != null && "Gato".equals(mascotaEnError.getTipo())) {
+                petThemeClassError = "cat-theme";
+                petIconError = "🐱";
+            }
+            request.setAttribute("petThemeClass", petThemeClassError);
+            request.setAttribute("petIcon", petIconError);
+            cargarListasParaFormulario(request); // Recargar listas de dropdowns
+            request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+            return;
+
         } catch (Exception e) {
             e.printStackTrace();
             session.setAttribute("message", "Ocurrió un error inesperado en MascotaServlet (POST): " + e.getMessage());
             session.setAttribute("messageType", "danger");
+            
             // Si hay un error inesperado, intentar precargar el formulario con los datos que el usuario envió
+            Mascota mascotaEnError = null;
+            // No se necesita try-catch aquí porque buildMascotaFromRequest ya no lanza ParseException
             if ("insertar".equals(action)) {
-                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null));
+                mascotaEnError = buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), null);
                 request.setAttribute("isEditMode", false); // Mantener en modo "añadir"
-                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                return;
             } else if ("actualizar".equals(action)) {
-                request.setAttribute("mascota", buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), Integer.parseInt(request.getParameter("idMascota"))));
+                mascotaEnError = buildMascotaFromRequest(request, usuarioActual.getIdUsuario(), Integer.parseInt(request.getParameter("idMascota")));
                 request.setAttribute("isEditMode", true); // Mantener en modo "editar"
-                request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
-                return;
-            } else {
-                response.sendRedirect(request.getContextPath() + "/MascotaServlet");
-                return;
             }
+            request.setAttribute("mascota", mascotaEnError);
+
+            // Establecer el tema y el icono para la JSP en caso de error
+            String petThemeClassError = "dog-theme"; // Default
+            String petIconError = "🐾"; // Default
+            if (mascotaEnError != null && "Gato".equals(mascotaEnError.getTipo())) {
+                petThemeClassError = "cat-theme";
+                petIconError = "🐱";
+            }
+            request.setAttribute("petThemeClass", petThemeClassError);
+            request.setAttribute("petIcon", petIconError);
+            cargarListasParaFormulario(request); // Recargar listas de dropdowns
+            request.getRequestDispatcher("/mascotaForm.jsp").forward(request, response);
+            return;
         }
     }
 
     /**
-     * Método auxiliar para construir un objeto Mascota a partir de los parámetros del request.
-     * Útil para precargar el formulario en caso de errores de validación.
-     * Ya no lanza ParseException, la maneja internamente.
+     * Método auxiliar para construir un objeto Mascota a partir de los parámetros del
+     * request.
+     * @param request Objeto HttpServletRequest.
+     * @param idUsuario ID del usuario al que pertenece la mascota.
+     * @param idMascota ID de la mascota (null si es nueva).
+     * @return Objeto Mascota con los datos del request.
+     * // CAMBIO: Eliminado 'throws ParseException' de la firma
      */
     private Mascota buildMascotaFromRequest(HttpServletRequest request, int idUsuario, Integer idMascota) {
         Mascota mascota = new Mascota();
@@ -510,90 +643,68 @@ public class MascotaServlet extends HttpServlet {
             mascota.setIdMascota(idMascota);
         }
         mascota.setIdUsuario(idUsuario);
-        mascota.setNombre(request.getParameter("nombre"));
-        mascota.setSexo(request.getParameter("sexo"));
-        
-        String fechaNacimientoStr = request.getParameter("fechaNacimiento");
-        if (fechaNacimientoStr != null && !fechaNacimientoStr.trim().isEmpty()) {
-            try {
+
+        // Obtener parámetros del formulario (manejo de Part para campos de texto)
+        try {
+            mascota.setNombre(request.getParameter("nombre"));
+            mascota.setRaza(request.getParameter("raza"));
+            mascota.setSexo(request.getParameter("sexo"));
+            
+            String fechaNacimientoStr = request.getParameter("fechaNacimiento");
+            if (fechaNacimientoStr != null && !fechaNacimientoStr.isEmpty()) {
                 mascota.setFechaNacimiento(new SimpleDateFormat("yyyy-MM-dd").parse(fechaNacimientoStr));
-            } catch (ParseException e) {
-                System.err.println("Error al parsear la fecha de nacimiento: " + fechaNacimientoStr + ". Estableciendo a null. " + e.getMessage());
-                mascota.setFechaNacimiento(null); // Establecer a null si hay un error de parseo
             }
-        } else {
-            mascota.setFechaNacimiento(null);
-        }
 
-        mascota.setRaza(request.getParameter("raza"));
-        
-        String pesoStr = request.getParameter("peso");
-        if (pesoStr != null && !pesoStr.trim().isEmpty()) {
-            try {
-                // Handle comma as decimal separator for locales
-                String cleanedPesoStr = pesoStr.replace(',', '.');
-                mascota.setPeso(Double.parseDouble(cleanedPesoStr));
-            } catch (NumberFormatException e) {
-                System.err.println("Error al parsear el peso: " + pesoStr + ". Estableciendo a 0.0. " + e.getMessage());
-                mascota.setPeso(0.0); // Default to 0.0 if there's a parsing error
+            String pesoStr = request.getParameter("peso");
+            if (pesoStr != null && !pesoStr.isEmpty()) {
+                // Reemplazar coma por punto para parsear Double, si el cliente usa coma decimal
+                mascota.setPeso(Double.parseDouble(pesoStr.replace(',', '.')));
+            } else {
+                mascota.setPeso(0.0); // Valor por defecto si no se proporciona o es vacío
             }
-        } else {
-            mascota.setPeso(0.0); // Default to 0.0 if empty
-        }
+            
+            mascota.setEsterilizado(Boolean.parseBoolean(request.getParameter("esterilizado")));
+            mascota.setTipo(request.getParameter("tipo"));
+            mascota.setNivelActividad(request.getParameter("nivelActividad"));
+            mascota.setCondicionSalud(request.getParameter("condicionSalud"));
+            // La imagen se maneja por separado en el doPost/doGet
+            // mascota.setImagen(request.getParameter("imagen")); 
+            mascota.setColor(request.getParameter("color"));
+            mascota.setChipID(request.getParameter("chipID"));
+            mascota.setObservaciones(request.getParameter("observaciones"));
 
-        // Add parsing for boolean esterilizado
-        mascota.setEsterilizado("true".equalsIgnoreCase(request.getParameter("esterilizado")));
-
-        // Add parsing for existing fields
-        mascota.setTipo(request.getParameter("tipo"));
-        mascota.setNivelActividad(request.getParameter("nivelActividad"));
-        mascota.setCondicionSalud(request.getParameter("condicionSalud"));
-
-        // Modificación clave: Si chipID es vacío, establecerlo a null
-        String chipIDParam = request.getParameter("chipID");
-        mascota.setChipID(chipIDParam != null && !chipIDParam.trim().isEmpty() ? chipIDParam.trim() : null);
-
-        mascota.setColor(request.getParameter("color"));
-        mascota.setObservaciones(request.getParameter("observaciones"));
-        mascota.setObjetivoPeso(request.getParameter("objetivoPeso"));
-        mascota.setEstadoReproductor(request.getParameter("estadoReproductor"));
-        
-        String numCachorrosStr = request.getParameter("numCachorros");
-        if (numCachorrosStr != null && !numCachorrosStr.trim().isEmpty()) {
-            try {
+            // Campos de preferencias de alimentación
+            mascota.setObjetivoPeso(request.getParameter("objetivoPeso"));
+            mascota.setEstadoReproductor(request.getParameter("estadoReproductor"));
+            
+            String numCachorrosStr = request.getParameter("numCachorros");
+            if (numCachorrosStr != null && !numCachorrosStr.isEmpty()) {
                 mascota.setNumCachorros(Integer.parseInt(numCachorrosStr));
-            } catch (NumberFormatException e) {
-                System.err.println("Error al parsear el número de cachorros: " + numCachorrosStr + ". Estableciendo a null. " + e.getMessage());
-                mascota.setNumCachorros(null);
+            } else {
+                mascota.setNumCachorros(null); // O 0, dependiendo de cómo lo maneje tu modelo
             }
-        } else {
-            mascota.setNumCachorros(null);
-        }
 
-        mascota.setTipoAlimentoPredeterminado(request.getParameter("tipoAlimentoPredeterminado"));
-        
-        String kcalStr = request.getParameter("kcalPor100gAlimentoPredeterminado");
-        if (kcalStr != null && !kcalStr.trim().isEmpty()) {
-            try {
+            mascota.setTipoAlimentoPredeterminado(request.getParameter("tipoAlimentoPredeterminado"));
+            String kcalStr = request.getParameter("kcalPor100gAlimentoPredeterminado");
+            if (kcalStr != null && !kcalStr.isEmpty()) {
                 mascota.setKcalPor100gAlimentoPredeterminado(Double.parseDouble(kcalStr.replace(',', '.')));
-            } catch (NumberFormatException e) {
-                System.err.println("Error al parsear kcalPor100gAlimentoPredeterminado: " + kcalStr + ". Estableciendo a null. " + e.getMessage());
-                mascota.setKcalPor100gAlimentoPredeterminado(null);
+            } else {
+                mascota.setKcalPor100gAlimentoPredeterminado(null); // O 0.0
             }
-        } else {
-            mascota.setKcalPor100gAlimentoPredeterminado(null);
+
+        } catch (Exception e) {
+            System.err.println("Error al construir Mascota desde request: " + e.getMessage());
+            e.printStackTrace();
+            // Si ocurre un error de parseo, los campos afectados pueden quedar como null/0
+            // La validación en el doPost debería capturar estos casos
         }
-
-        // La imagen se maneja por separado en doPost
-        // mascota.setImagen(request.getParameter("imagen")); // No se obtiene aquí directamente del request
-
         return mascota;
     }
 
     /**
-     * Método auxiliar para obtener el nombre del archivo de una parte (Part).
-     * @param part La parte del archivo.
-     * @return El nombre del archivo.
+     * Método auxiliar para obtener el nombre del archivo de una Part.
+     * @param part Objeto Part que representa el archivo subido.
+     * @return Nombre del archivo.
      */
     private String getFileName(Part part) {
         for (String content : part.getHeader("content-disposition").split(";")) {
